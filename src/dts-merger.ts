@@ -6,7 +6,7 @@ import console from 'node:console';
 /**
  * Find all .d.ts files in src and prepend their content to dist/index.d.ts
  */
-export function dtsMerger(options: Partial<Rollup__NAME__Options>): Plugin {
+export function dtsMerger(options: Partial<__ROLLUP_OPTIONS__>): Plugin {
   return {
     name: '__NAME__',
     writeBundle() {

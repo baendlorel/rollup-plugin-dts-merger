@@ -1,4 +1,4 @@
-interface Rollup__NAME__Options {
+interface __ROLLUP_OPTIONS__ {
   include?: (string | RegExp)[];
 
   mergeInto: string;
