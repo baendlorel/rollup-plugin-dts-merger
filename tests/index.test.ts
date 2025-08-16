@@ -1,14 +1,7 @@
 import { describe, it, expect, beforeEach } from 'vitest';
 import { dtsMerger } from '../src/index.js';
 
-import {
-  mockIndexDts,
-  readResult,
-  MERGE_INTO,
-  SRC,
-  countOccurrences,
-  readInclude,
-} from './misc.js';
+import { mockIndexDts, read, MERGE_INTO, SRC, count } from './misc.js';
 
 describe('dts-merger plugin', () => {
   beforeEach(() => {
@@ -25,16 +18,58 @@ describe('dts-merger plugin', () => {
         },
       },
     });
-    const fn = plugin.writeBundle as Function;
-    expect(typeof fn === 'function').toBe(true);
-    fn();
-    const result = readResult();
-    expect(result).toContain('MockType');
-    expect(result).not.toContain('__TYPE__');
-    const a = countOccurrences(result, 'MockType');
+    (plugin.writeBundle as Function)();
 
-    const origin = readInclude();
-    const b = countOccurrences(origin, '__TYPE__');
+    const { after, before } = read();
+    const a = count(after, 'MockType');
+    const b = count(before, '__TYPE__');
+
+    expect(after).toContain('MockType');
+    expect(before).not.toContain('MockType');
+
+    expect(after).not.toContain('__TYPE__');
+    expect(before).toContain('__TYPE__');
+
     expect(a).toEqual(b);
+  });
+
+  it('should replace with empty delimiters', () => {
+    const plugin = dtsMerger({
+      include: [SRC],
+      mergeInto: MERGE_INTO,
+      replace: {
+        delimiters: ['', ''],
+        values: {
+          __DILIMITER__: 'kasukabe',
+        },
+      },
+    });
+    (plugin.writeBundle as Function)();
+    const { before, after } = read();
+    const b = count(before, '__DILIMITER__');
+    expect(b).toBe(2);
+    expect(before).toContain('__DILIMITER__');
+    expect(before).not.toContain('AAAkasukabeAAA');
+
+    const a = count(after, '__DILIMITER__');
+    expect(a).toBe(1);
+    expect(after).toContain('AAAkasukabeAAA');
+    expect(after).not.toContain('__DILIMITER__');
+  });
+
+  it('should prevent assignment replacement', () => {
+    const plugin = dtsMerger({
+      include: [SRC],
+      mergeInto: MERGE_INTO,
+      replace: {
+        preventAssignment: true,
+        values: {
+          __TYPE__: 'PreventAssignType',
+        },
+      },
+    });
+    (plugin.writeBundle as Function)();
+    const { after } = read();
+    expect(after).toContain('PreventAssignType');
   });
 });
