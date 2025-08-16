@@ -14,7 +14,11 @@ function isExistedDts(fullPath: string) {
   return existsSync(fullPath) && statSync(fullPath).isFile() && fullPath.endsWith('.d.ts');
 }
 
-export function recursion(unknownPath: string, result: string[]) {
+export function recursion(exclude: Set<string>, unknownPath: string, result: string[]) {
+  if (exclude.has(unknownPath)) {
+    return;
+  }
+
   if (isExistedDts(unknownPath)) {
     result.push(unknownPath);
     return;
@@ -27,33 +31,44 @@ export function recursion(unknownPath: string, result: string[]) {
   const items = readdirSync(unknownPath);
   for (let i = 0; i < items.length; i++) {
     const fullPath = pathJoin(unknownPath, items[i]);
-    recursion(fullPath, result);
+    recursion(exclude, fullPath, result);
   }
 }
 
 function normalize(options?: DeepPartial<__ROLLUP_OPTIONS__>): __STRICT_ROLLUP_OPTIONS__ {
   const {
-    include = [],
-    exclude = [],
-    mergeInto: rawMergeInto = ['dist', 'index.d.ts'],
-    replace: rawReplace = {},
+    include: rawInclude = [],
+    exclude: rawExclude = [],
+    mergeInto = ['dist', 'index.d.ts'],
+    replace = {},
   } = Object(options) as __ROLLUP_OPTIONS__;
-  expect(Array.isArray(include), `options.include must be an array`);
-  expect(Array.isArray(exclude), `options.exclude must be an array`);
-  expect(
-    typeof rawMergeInto === 'string' || Array.isArray(rawMergeInto),
-    `options.mergeInto must be a string`
-  );
-
   const cwd = process.cwd();
   const join = (p: string | string[]) =>
     Array.isArray(p) ? pathJoin(cwd, ...p) : pathJoin(cwd, p);
 
+  expect(Array.isArray(rawInclude), `options.include must be an array`);
+  expect(Array.isArray(rawExclude), `options.exclude must be an array`);
+  expect(
+    typeof mergeInto === 'string' || Array.isArray(mergeInto),
+    `options.mergeInto must be string/string[]`
+  );
+
+  const include = rawInclude.length
+    ? new Set(rawInclude.map((item) => join(item)))
+    : new Set([join('src')]);
+  const exclude = new Set(rawExclude.map((item) => join(item)));
+  const union = new Set([...include, ...exclude]);
+
+  expect(
+    union.size === include.size + exclude.size,
+    `options.include and options.exclude must not share any items`
+  );
+
   return {
-    include: include.length ? include.map((item) => join(item)) : [join('src')],
-    exclude: exclude.map((item) => join(item)),
-    mergeInto: join(rawMergeInto),
-    replace: Replacer.normalize(rawReplace),
+    include,
+    exclude,
+    mergeInto: join(mergeInto),
+    replace: Replacer.normalize(replace),
   };
 }
 
@@ -95,9 +110,7 @@ export function dtsMerger(options?: DeepPartial<__ROLLUP_OPTIONS__>): Plugin {
       }
 
       const dtsFiles: string[] = [];
-      for (let i = 0; i < include.length; i++) {
-        recursion(include[i], dtsFiles);
-      }
+      include.forEach((p) => recursion(exclude, p, dtsFiles));
 
       for (let i = 0; i < dtsFiles.length; i++) {
         const file = dtsFiles[i];

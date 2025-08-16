@@ -57,8 +57,8 @@ export interface __ROLLUP_OPTIONS__ {
 }
 
 export interface __STRICT_ROLLUP_OPTIONS__ {
-  include: string[];
-  exclude: string[];
+  include: Set<string>;
+  exclude: Set<string>;
   mergeInto: string;
   replace: ReplaceOptions;
 }
