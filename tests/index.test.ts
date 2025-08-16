@@ -66,7 +66,6 @@ describe('dts-merger plugin', () => {
       include: [['tests', 'mock', 'src', 'assignment.d.ts']],
       mergeInto: ['tests', 'mock', 'dist', 'replaced-assignment.d.ts'],
       replace: {
-        preventAssignment: true,
         values: {
           __ASSIGN__: 'Assigned',
         },
@@ -76,8 +75,8 @@ describe('dts-merger plugin', () => {
     expect(result).toMatchObject({
       beforeKey: 2,
       beforeValue: 0,
-      afterKey: 1,
-      afterValue: 1,
+      afterKey: 0,
+      afterValue: 2,
     });
   });
 
@@ -93,6 +92,31 @@ describe('dts-merger plugin', () => {
       beforeValue: 0,
       afterKey: 2,
       afterValue: 0,
+    });
+  });
+
+  it('should respect exclude option', () => {
+    const result = new PluginRunner('excluded.d.ts', {
+      include: ['tests/mock/src'],
+      exclude: [
+        'tests/mock/src/keep.d.ts',
+        'tests/mock/src/delimiter.d.ts',
+        'tests/mock/src/assignment.d.ts',
+      ],
+      mergeInto: ['tests', 'mock', 'dist', 'normal-excluded.d.ts'],
+      replace: {
+        preventDeclaration: true,
+        values: {
+          __EXCLUDE__: 'excluded',
+        },
+      },
+    }).run('__EXCLUDE__', 'excluded');
+    // 只剩下 mock/src 目录下未被 exclude 的那个文件
+    expect(result).toMatchObject({
+      beforeKey: 1,
+      beforeValue: 0,
+      afterKey: 0,
+      afterValue: 1,
     });
   });
 });
