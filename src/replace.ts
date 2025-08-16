@@ -52,12 +52,12 @@ export class Replacer {
     const keys = Object.keys(values).sort(longest).map(escape);
     const [p, s] = delimiters;
 
-    // const lookAhead = preventAssignment || preventDeclaration ? '(?<!\\b(?:const|let|var|function)\\s*)' : '';
-    // & logic above is from '@rollup/plugin-replace', it only checks for variable declarations
-    // & but ignores expressions like `aaa = 3`, which should be prevented too
-    const lookAhead = '';
-    const lookBehind = getLookAhead(preventAssignment, preventDeclaration);
-    return new RegExp(`${lookAhead}${p}(${keys.join('|')})${s}${lookBehind}`, 'g');
+    // negative lookbehind
+    const nlb = preventAssignment || preventDeclaration ? '(?<!\\b(?:const|let|var)\\s*)' : '';
+
+    // negative lookahead
+    const nla = getLookAhead(preventAssignment, preventDeclaration);
+    return new RegExp(`${nlb}${p}(${keys.join('|')})${s}${nla}`, 'g');
   }
 
   static normalize(replace: DeepPartial<ReplaceOptions>): ReplaceOptions {
