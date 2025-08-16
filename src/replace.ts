@@ -43,15 +43,25 @@ export class Replacer {
   }
 
   stringify(key: string, value: Any): string {
-    if (value === null) {
-      return 'null';
+    switch (typeof value) {
+      case 'string':
+        return value;
+      case 'function':
+        return this.stringify(key, value(key));
+      case 'bigint':
+      case 'number':
+      case 'boolean':
+        return value.toString();
+      case 'undefined':
+        return 'undefined';
+      case 'object':
+        if (value === null) {
+          return 'null';
+        }
+      case 'symbol':
+      default:
+        throw new TypeError(`Unsupported replacement type for key "${key}": ${typeof value}`);
     }
-    if (typeof value === 'function') {
-      return this.stringify(key, value(key));
-    }
-
-    expect(typeof value !== 'object', `replacement cannot be an object`);
-    return JSON.stringify(value);
   }
 
   regex(key: string): RegExp {

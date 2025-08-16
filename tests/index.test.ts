@@ -13,6 +13,8 @@ const mockIndexDts = (mergeInto: string | string[]) => {
 
 const MERGE_INTO = ['tests', 'mock-dist', 'index.d.ts'];
 
+const readResult = () => readFileSync(join(process.cwd(), ...MERGE_INTO), 'utf-8');
+
 describe('dts-merger plugin', () => {
   beforeEach(() => {
     mockIndexDts(MERGE_INTO);
@@ -31,5 +33,8 @@ describe('dts-merger plugin', () => {
     const fn = plugin.writeBundle as Function;
     expect(typeof fn === 'function').toBe(true);
     fn();
+    const result = readResult();
+    expect(result).toContain('MockType');
+    expect(result).not.toContain('__TYPE__');
   });
 });
