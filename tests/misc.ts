@@ -49,11 +49,10 @@ export class PluginRunner {
     opts.mergeInto ??= DIST.concat(name);
     this.plugin = dtsMerger(opts);
     this.opts = (this.plugin as any).__KSKBTMG__;
-
     this.writeBundle = (this.plugin as any).writeBundle.bind(this.plugin);
   }
 
-  private read(key: string, value: any) {
+  read(key: string, value: any) {
     const after = readFileSync(join(this.opts.mergeInto), 'utf-8');
     const before = (() => {
       const srcDir = join(...this.opts.include);

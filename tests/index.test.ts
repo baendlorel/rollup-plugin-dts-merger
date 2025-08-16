@@ -6,20 +6,71 @@ describe('dts-merger plugin', () => {
     PluginRunner.clear();
   });
 
-  it('should merge .d.ts files correctly', () => {
-    const result = new PluginRunner('normal.d.ts', {
+  it('should replace .d.ts files correctly', () => {
+    const runner = new PluginRunner('normal.d.ts', {
       replace: {
         values: {
           __TYPE__: 'MockType',
+          __MULTI__: 'mul',
+          __EXCLUDE__: 'exc',
         },
       },
-    }).run('__TYPE__', 'MockType');
+    });
 
-    expect(result).toMatchObject({
+    expect(runner.run('__TYPE__', 'MockType')).toMatchObject({
       beforeKey: 3,
       beforeValue: 0,
       afterKey: 0,
       afterValue: 3,
+    });
+
+    expect(runner.read('__MULTI__', 'mul')).toMatchObject({
+      beforeKey: 2,
+      beforeValue: 0,
+      afterKey: 0,
+      afterValue: 2,
+    });
+
+    expect(runner.read('__EXCLUDE__', 'exc')).toMatchObject({
+      beforeKey: 3,
+      beforeValue: 0,
+      afterKey: 0,
+      afterValue: 3,
+    });
+  });
+
+  it('should replace .d.ts files preventing assignments', () => {
+    const runner = new PluginRunner('normal.d.ts', {
+      mergeInto: ['tests', 'mock', 'dist', 'normal-replaced.d.ts'],
+      replace: {
+        preventAssignment: true,
+        values: {
+          __TYPE__: 'MockType',
+          __MULTI__: 'mul',
+          __EXCLUDE__: 'exc',
+        },
+      },
+    });
+
+    expect(runner.run('__TYPE__', 'MockType')).toMatchObject({
+      beforeKey: 3,
+      beforeValue: 0,
+      afterKey: 1,
+      afterValue: 2,
+    });
+
+    expect(runner.read('__MULTI__', 'mul')).toMatchObject({
+      beforeKey: 2,
+      beforeValue: 0,
+      afterKey: 1,
+      afterValue: 1,
+    });
+
+    expect(runner.read('__EXCLUDE__', 'exc')).toMatchObject({
+      beforeKey: 3,
+      beforeValue: 0,
+      afterKey: 2,
+      afterValue: 1,
     });
   });
 

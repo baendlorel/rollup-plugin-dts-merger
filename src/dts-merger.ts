@@ -6,11 +6,21 @@ import { __OPTS__, __STRICT_OPTS__, DeepPartial } from './types.js';
 import { Replacer } from './replace.js';
 
 function isExistedDir(fullPath: string) {
-  return existsSync(fullPath) && statSync(fullPath).isDirectory();
+  try {
+    const stat = statSync(fullPath);
+    return stat.isDirectory();
+  } catch {
+    return false;
+  }
 }
 
 function isExistedDts(fullPath: string) {
-  return existsSync(fullPath) && statSync(fullPath).isFile() && fullPath.endsWith('.d.ts');
+  try {
+    const stat = statSync(fullPath);
+    return stat.isFile() && fullPath.endsWith('.d.ts');
+  } catch {
+    return false;
+  }
 }
 
 export function recursion(exclude: Set<string>, unknownPath: string, result: string[]) {
@@ -94,15 +104,10 @@ function getContext(ctx: PluginContext) {
     return fallback;
   }
 
-  if (!('warn' in ctx) || typeof ctx.warn !== 'function') {
-    ctx.warn = fallback.warn;
-  }
-
-  if (!('error' in ctx) || typeof ctx.error !== 'function') {
-    ctx.error = fallback.error;
-  }
-
-  return ctx;
+  return {
+    warn: typeof ctx.warn === 'function' ? ctx.warn : fallback.warn,
+    error: typeof ctx.error === 'function' ? ctx.error : fallback.error,
+  };
 }
 
 /**

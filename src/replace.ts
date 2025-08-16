@@ -31,20 +31,8 @@ export function stringify(key: string, value: Any): string {
 }
 
 export class Replacer {
-  private readonly values: Record<string, Any>;
+  private readonly map: Record<string, string>;
   private readonly regex: RegExp;
-
-  static generateRegExp(options: ReplaceOptions): RegExp {
-    const { delimiters: d, preventAssignment, values } = options;
-    const keys = Object.keys(values).sort(longest).map(escape);
-
-    // negative lookbehind
-    const b = preventAssignment ? '(?<!\\b(?:const|let|var)\\s*)' : '';
-    // negative lookahead
-    const a = preventAssignment ? '(?!\\s*[=:][^=:])' : '';
-
-    return new RegExp(`${b}${d[0]}(${keys.join('|')})${d[1]}${a}`, 'g');
-  }
 
   static normalize(replace: DeepPartial<ReplaceOptions>): ReplaceOptions | string {
     if (typeof replace !== 'object' || replace === null) {
@@ -77,16 +65,31 @@ export class Replacer {
   }
 
   constructor(options: ReplaceOptions) {
-    this.values = options.values;
-    this.regex = Replacer.generateRegExp(options);
+    this.map = this.generateMap(options.values);
+    this.regex = this.generateRegExp(options);
+  }
+
+  generateMap(values: Record<string, Any>): Record<string, string> {
+    const map: Record<string, string> = {};
+    for (const [key, value] of Object.entries(values)) {
+      map[key] = stringify(key, value);
+    }
+    return map;
+  }
+
+  generateRegExp(options: ReplaceOptions): RegExp {
+    const { delimiters: d, preventAssignment, values } = options;
+    const keys = Object.keys(values).sort(longest).map(escape);
+
+    // negative lookbehind
+    const b = preventAssignment ? '(?<!\\b(?:const|let|var)\\s*)' : '';
+    // negative lookahead
+    const a = preventAssignment ? '(?!\\s*[=:][^=:])' : '';
+
+    return new RegExp(`${b}${d[0]}(${keys.join('|')})${d[1]}${a}`, 'g');
   }
 
   apply(content: string) {
-    const entries = Object.entries(this.values);
-    for (let i = 0; i < entries.length; i++) {
-      const replacement = stringify(entries[i][0], entries[i][1]);
-      content = content.replace(this.regex, replacement);
-    }
-    return content;
+    return content.replace(this.regex, (_, $1) => this.map[$1]);
   }
 }
