@@ -1,11 +1,11 @@
 import { expect } from './common.js';
 import { __ROLLUP_OPTIONS__, Any, DeepPartial, ReplaceOptions } from './types.js';
 
+type RegexTemplate = (key: string) => string;
+
 export class Replacer {
-  private readonly delimiters: [string, string];
-  private readonly preventAssignment: boolean;
-  private readonly preventDeclaration: boolean;
   private readonly values: Record<string, Any>;
+  private readonly regex: RegexTemplate;
 
   static normalize(replace: DeepPartial<ReplaceOptions>): ReplaceOptions {
     expect(typeof replace === 'object' && replace !== null, `options.replace must be an object`);
@@ -18,7 +18,7 @@ export class Replacer {
     } = replace as ReplaceOptions;
 
     expect(
-      Array.isArray(delimiters) && delimiters.length === 2,
+      Array.isArray(delimiters) && delimiters.length >= 2,
       `options.replace.delimiters must be an array of two strings`
     );
     expect(
@@ -44,11 +44,23 @@ export class Replacer {
     return { delimiters, preventAssignment, preventDeclaration, values };
   }
 
+  static generateRegexTemplate(options: ReplaceOptions): RegexTemplate {
+    const { delimiters, preventAssignment, preventDeclaration } = options;
+    const [p, s] = delimiters;
+    if (preventAssignment && preventDeclaration) {
+      return (key: string) => `${p}${key}${s}(?!\\s*[=:])`;
+    } else if (preventAssignment) {
+      return (key: string) => `${p}${key}${s}(?!\\s*[=])`;
+    } else if (preventDeclaration) {
+      return (key: string) => `${p}${key}${s}(?!\\s*[:])`;
+    } else {
+      return (key: string) => `${p}${key}${s}`;
+    }
+  }
+
   constructor(options: ReplaceOptions) {
-    this.delimiters = options.delimiters;
-    this.preventAssignment = options.preventAssignment;
-    this.preventDeclaration = options.preventDeclaration;
     this.values = options.values;
+    this.regex = Replacer.generateRegexTemplate(options);
   }
 
   static stringify(key: string, value: Any): string {
@@ -71,20 +83,6 @@ export class Replacer {
       default:
         throw new TypeError(`Unsupported replacement type for key "${key}": ${typeof value}`);
     }
-  }
-
-  regex(key: string): RegExp {
-    const r = `${this.delimiters[0]}${key}${this.delimiters[1]}`;
-    if (this.preventAssignment && this.preventDeclaration) {
-      return new RegExp(`${r}(?!\\s*[=:])`, 'g');
-    }
-    if (this.preventAssignment) {
-      return new RegExp(`${r}(?!\\s*=)`, 'g');
-    }
-    if (this.preventDeclaration) {
-      return new RegExp(`${r}(?!\\s*:)`, 'g');
-    }
-    return new RegExp(r, 'g');
   }
 
   apply(content: string) {
