@@ -18,14 +18,14 @@ export interface __ROLLUP_OPTIONS__ {
    * Will join the given paths with `process.pwd()`
    * - if omitted, will use `path.join(<cwd>,'src)`
    * - if item is an array, will use `path.join(<cwd>,...item)`
-   * @example path.join(<cwd>, include[0])
+   * @default path.join(<cwd>, include[0])
    */
   include: (string | string[])[];
 
   /**
    * The file to merge into, relative to `process.cwd()`
    * - if it is an array, will use `path.join(<cwd>,...mergeInto)`
-   * @example 'dist/index.d.ts'
+   * @default ['dist', 'index.d.ts']
    */
   mergeInto: string | string[];
 

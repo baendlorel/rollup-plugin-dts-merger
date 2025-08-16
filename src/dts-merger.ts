@@ -6,7 +6,7 @@ import { __ROLLUP_OPTIONS__, __STRICT_ROLLUP_OPTIONS__, DeepPartial } from './ty
 import { expect } from './common.js';
 import { Replacer } from './replace.js';
 
-function recursion(dir: string, result: string[]) {
+export function recursion(dir: string, result: string[]) {
   for (const file of readdirSync(dir)) {
     const fullPath = pathJoin(dir, file);
     if (!existsSync(fullPath)) {
@@ -26,7 +26,7 @@ function recursion(dir: string, result: string[]) {
 function normalize(options?: DeepPartial<__ROLLUP_OPTIONS__>): __STRICT_ROLLUP_OPTIONS__ {
   const {
     include: include = [],
-    mergeInto: rawMergeInto = 'index.d.ts',
+    mergeInto: rawMergeInto = ['dist', 'index.d.ts'],
     replace: rawReplace = {},
   } = Object(options) as __ROLLUP_OPTIONS__;
   expect(Array.isArray(include), `options.include must be an array`);
