@@ -1,6 +1,6 @@
 import { join as pathJoin, relative } from 'node:path';
 import { readdirSync, readFileSync, existsSync, statSync, appendFileSync } from 'node:fs';
-import type { Plugin, PluginContext } from 'rollup';
+import type { Plugin, PluginContext, RollupError } from 'rollup';
 
 import { __OPTS__, __STRICT_OPTS__, DeepPartial } from './types.js';
 import { Replacer } from './replace.js';
@@ -79,6 +79,32 @@ function normalize(options?: DeepPartial<__OPTS__>): __STRICT_OPTS__ | string {
   };
 }
 
+function getContext(ctx: PluginContext) {
+  const fallback = {
+    warn: console.warn,
+    error: (e: string | RollupError) => {
+      if (typeof e === 'string') {
+        throw new Error(e);
+      }
+      throw e;
+    },
+  };
+
+  if (typeof ctx !== 'object' || ctx === null) {
+    return fallback;
+  }
+
+  if (!('warn' in ctx) || typeof ctx.warn !== 'function') {
+    ctx.warn = fallback.warn;
+  }
+
+  if (!('error' in ctx) || typeof ctx.error !== 'function') {
+    ctx.error = fallback.error;
+  }
+
+  return ctx;
+}
+
 /**
  * ## Intro
  * Find all `.d.ts` files in directories(default: 'src') as your provided. Then append their content to the target declaration file, default (default: 'dist/index.d.ts')
@@ -107,12 +133,7 @@ export function dtsMerger(options?: DeepPartial<__OPTS__>): Plugin {
   const plugin: Plugin = {
     name: '__NAME__',
     writeBundle(this: PluginContext) {
-      const ctx = this ?? {
-        warn: console.warn,
-        error: (msg: string) => {
-          throw new Error(msg);
-        },
-      };
+      const ctx = getContext(this);
 
       if (typeof opts === 'string') {
         ctx.error(opts);
