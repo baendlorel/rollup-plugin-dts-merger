@@ -15,12 +15,22 @@ export type DeepPartial<T> = {
 
 export interface __ROLLUP_OPTIONS__ {
   /**
-   * Will join the given paths with `process.pwd()`
-   * - if omitted, will use `path.join(<cwd>,'src)`
-   * - if item is an array, will use `path.join(<cwd>,...item)`
-   * @default path.join(<cwd>, include[0])
+   * Relative paths, will join the given paths with `process.pwd()`
+   * - if item is `string[]`, will use `path.join(<cwd>,...item)`
+   * - if path is a:
+   *   - directory: will check into it
+   *   - file: will check if it is a `.d.ts` file
+   * @default ['src']
    */
   include: (string | string[])[];
+
+  /**
+   * Relative paths, will join the given paths with `process.pwd()`
+   * - if item is `string[]`, will use `path.join(<cwd>,...item)`
+   * - will skip this file/directory
+   * @default []
+   */
+  exclude: (string | string[])[];
 
   /**
    * The file to merge into, relative to `process.cwd()`
@@ -48,6 +58,7 @@ export interface __ROLLUP_OPTIONS__ {
 
 export interface __STRICT_ROLLUP_OPTIONS__ {
   include: string[];
+  exclude: string[];
   mergeInto: string;
   replace: ReplaceOptions;
 }

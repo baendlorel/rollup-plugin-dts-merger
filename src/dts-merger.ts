@@ -7,40 +7,39 @@ import { expect } from './common.js';
 import { Replacer } from './replace.js';
 
 function isExistedDir(fullPath: string) {
-  return statSync(fullPath).isDirectory();
+  return existsSync(fullPath) && statSync(fullPath).isDirectory();
 }
 
 function isExistedDts(fullPath: string) {
-  return statSync(fullPath).isFile() && fullPath.endsWith('.d.ts');
+  return existsSync(fullPath) && statSync(fullPath).isFile() && fullPath.endsWith('.d.ts');
 }
 
-export function recursion(dir: string, result: string[]) {
-  for (const item of readdirSync(dir)) {
-    const fullPath = pathJoin(dir, item);
-    if (!existsSync(fullPath)) {
-      console.warn(`__NAME__ Warning: '${fullPath}' does not exist, please check!`);
-      continue;
-    }
+export function recursion(unknownPath: string, result: string[]) {
+  if (isExistedDts(unknownPath)) {
+    result.push(unknownPath);
+    return;
+  }
 
-    if (isExistedDir(fullPath)) {
-      recursion(fullPath, result);
-      continue;
-    }
+  if (!isExistedDir(unknownPath)) {
+    return;
+  }
 
-    if (isExistedDts(fullPath)) {
-      result.push(fullPath);
-      continue;
-    }
+  const items = readdirSync(unknownPath);
+  for (let i = 0; i < items.length; i++) {
+    const fullPath = pathJoin(unknownPath, items[i]);
+    recursion(fullPath, result);
   }
 }
 
 function normalize(options?: DeepPartial<__ROLLUP_OPTIONS__>): __STRICT_ROLLUP_OPTIONS__ {
   const {
-    include: include = [],
+    include = [],
+    exclude = [],
     mergeInto: rawMergeInto = ['dist', 'index.d.ts'],
     replace: rawReplace = {},
   } = Object(options) as __ROLLUP_OPTIONS__;
   expect(Array.isArray(include), `options.include must be an array`);
+  expect(Array.isArray(exclude), `options.exclude must be an array`);
   expect(
     typeof rawMergeInto === 'string' || Array.isArray(rawMergeInto),
     `options.mergeInto must be a string`
@@ -52,6 +51,7 @@ function normalize(options?: DeepPartial<__ROLLUP_OPTIONS__>): __STRICT_ROLLUP_O
 
   return {
     include: include.length ? include.map((item) => join(item)) : [join('src')],
+    exclude: exclude.map((item) => join(item)),
     mergeInto: join(rawMergeInto),
     replace: Replacer.normalize(rawReplace),
   };
@@ -80,7 +80,7 @@ function normalize(options?: DeepPartial<__ROLLUP_OPTIONS__>): __STRICT_ROLLUP_O
  */
 export function dtsMerger(options?: DeepPartial<__ROLLUP_OPTIONS__>): Plugin {
   const cwd = process.cwd();
-  const { include, mergeInto, replace } = normalize(options);
+  const { include, exclude, mergeInto, replace } = normalize(options);
 
   const replacer = new Replacer(replace);
 
