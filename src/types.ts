@@ -33,44 +33,46 @@ export interface __ROLLUP_OPTIONS__ {
    * - `value`: a key-value object to replace expressions in the '.d.ts' files.
    * - `delimiters`: used to determine the boundary of the words.
    */
-  replace: {
-    /**
-     * To replace every occurrence of `<@foo@>` instead of every occurrence of `foo`, supply delimiters
-     * - `[string, string]` is actually `[prefix, suffix]`
-     * - default is `['\\b', '\\b(?!\\.)']` @see https://www.npmjs.com/package/@rollup/plugin-replace
-     * @example
-     * // if delimiters: ['<@', '@>'], values:{ foo: 'bar' }
-     * // Before
-     * const a = '<@foo@>';
-     * // After
-     * const a = 'bar';
-     */
-    delimiters: [string, string];
+  replace: ReplaceOptions;
+}
 
-    /**
-     * Default is `false`, but it is recommended to set it to `true`.
-     * @example
-     * // If preventAssignment: false, values:{ __NAME__: 'dts-merger' }
-     * // Before
-     * const __NAME__ = 'DtsMerger';
-     * const ERR_NAME = '__NAME__Error';
-     * // After
-     * const 'DtsMerger' = 'DtsMerger';
-     * const ERR_NAME = 'DtsMergerError';
-     *
-     * // If preventAssignment: true
-     * // After
-     * const __NAME__ = 'DtsMerger';
-     * const ERR_NAME = 'DtsMergerError';
-     */
-    preventAssignment: boolean;
+export interface ReplaceOptions {
+  /**
+   * To replace every occurrence of `<@foo@>` instead of every occurrence of `foo`, supply delimiters
+   * - `[string, string]` is actually `[prefix, suffix]`
+   * - default is `['\\b', '\\b(?!\\.)']` @see https://www.npmjs.com/package/@rollup/plugin-replace
+   * @example
+   * // if delimiters: ['<@', '@>'], values:{ foo: 'bar' }
+   * // Before
+   * const a = '<@foo@>';
+   * // After
+   * const a = 'bar';
+   */
+  delimiters: [string, string];
 
-    /**
-     * A key-value object to replace expressions in the '.d.ts' files.
-     * - if `value` is a function, it will be called with `key` and the return value will be used as the replacement.
-     *   - this means then meet `{ key: 'fn' }`, then `fn` will be called as `fn(key)` and use the result to stringify.
-     * - otherwise, just stringify the value.
-     */
-    values: Record<string, Any>;
-  };
+  /**
+   * Default is `false`, but it is recommended to set it to `true`.
+   * @example
+   * // If preventAssignment: false, values:{ __NAME__: 'dts-merger' }
+   * // Before
+   * const __NAME__ = 'DtsMerger';
+   * const ERR_NAME = '__NAME__Error';
+   * // After
+   * const 'DtsMerger' = 'DtsMerger';
+   * const ERR_NAME = 'DtsMergerError';
+   *
+   * // If preventAssignment: true
+   * // After
+   * const __NAME__ = 'DtsMerger';
+   * const ERR_NAME = 'DtsMergerError';
+   */
+  preventAssignment: boolean;
+
+  /**
+   * A key-value object to replace expressions in the '.d.ts' files.
+   * - if `value` is a function, it will be called with `key` and the return value will be used as the replacement.
+   *   - this means then meet `{ key: 'fn' }`, then `fn` will be called as `fn(key)` and use the result to stringify.
+   * - otherwise, just stringify the value.
+   */
+  values: Record<string, Any>;
 }

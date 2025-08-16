@@ -1,21 +1,19 @@
 import { expect } from './common.js';
-import { __ROLLUP_OPTIONS__, Any, DeepPartial } from './types.js';
+import { __ROLLUP_OPTIONS__, Any, DeepPartial, ReplaceOptions } from './types.js';
 
 export class Replacer {
   private readonly delimiters: [string, string];
   private readonly preventAssignment: boolean;
   private readonly values: Record<string, Any>;
 
-  static normalize(
-    replace: DeepPartial<__ROLLUP_OPTIONS__['replace']>
-  ): __ROLLUP_OPTIONS__['replace'] {
+  static normalize(replace: DeepPartial<ReplaceOptions>): ReplaceOptions {
     expect(typeof replace === 'object' && replace !== null, `options.replace must be an object`);
 
     const {
       delimiters = ['\\b', '\\b(?!\\.)'],
       preventAssignment = false,
       values = {},
-    } = replace as __ROLLUP_OPTIONS__['replace'];
+    } = replace as ReplaceOptions;
 
     expect(
       Array.isArray(delimiters) && delimiters.length === 2,
@@ -38,7 +36,7 @@ export class Replacer {
     return { delimiters, preventAssignment, values };
   }
 
-  constructor(options: __ROLLUP_OPTIONS__['replace']) {
+  constructor(options: ReplaceOptions) {
     this.preventAssignment = options.preventAssignment;
     this.values = options.values;
     this.delimiters = options.delimiters;
