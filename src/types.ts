@@ -31,9 +31,14 @@ export interface __ROLLUP_OPTIONS__ {
 
   /**
    * Simple replace options inspired by '@rollup/plugin-replace', not such powerful as the original one.
-   * - `preventAssignment`: default is false, but it is recommended to set it to `true`.
+   * - `preventAssignment`:
+   *    - whether to replace some thing like 'var __NAME__ = xxx;'.
+   *    - default is `false`, recommended to set it to `true`. But keep it the same as '@rollup/plugin-replace'
    * - `value`: a key-value object to replace expressions in the '.d.ts' files.
+   *    - default is `{}`
    * - `delimiters`: used to determine the boundary of the words.
+   *    - since this plugin works on declaration files, it is recommended to use `['', '']`
+   *    - default is `['\\b', '\\b(?!\\.)']` @see https://www.npmjs.com/package/@rollup/plugin-replace
    */
   replace: ReplaceOptions;
 }
@@ -48,6 +53,7 @@ export interface ReplaceOptions {
   /**
    * To replace every occurrence of `<@foo@>` instead of every occurrence of `foo`, supply delimiters
    * - `[string, string]` is actually `[prefix, suffix]`
+   * - since this plugin works on declaration files, it is recommended to use `['', '']`
    * - default is `['\\b', '\\b(?!\\.)']` @see https://www.npmjs.com/package/@rollup/plugin-replace
    * @example
    * // if delimiters: ['<@', '@>'], values:{ foo: 'bar' }
@@ -63,15 +69,15 @@ export interface ReplaceOptions {
    * @example
    * // If preventAssignment: false, values:{ __NAME__: 'dts-merger' }
    * // Before
-   * const __NAME__ = 'DtsMerger';
+   * const __NAME__ = 'SomeName';
    * const ERR_NAME = '__NAME__Error';
    * // After
-   * const 'DtsMerger' = 'DtsMerger';
+   * const DtsMerger = 'SomeName';
    * const ERR_NAME = 'DtsMergerError';
    *
    * // If preventAssignment: true
    * // After
-   * const __NAME__ = 'DtsMerger';
+   * const __NAME__ = 'SomeName';
    * const ERR_NAME = 'DtsMergerError';
    */
   preventAssignment: boolean;
