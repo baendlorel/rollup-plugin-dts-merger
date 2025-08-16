@@ -1,5 +1,6 @@
 import { join } from 'node:path';
-import { readFileSync, writeFileSync } from 'node:fs';
+import { mkdirSync, readFileSync, rmSync } from 'node:fs';
+
 import { dtsMerger, recursion } from '../src/dts-merger.js';
 import { Replacer } from '../src/replace.js';
 import { __ROLLUP_OPTIONS__, DeepPartial } from '../src/types.js';
@@ -8,13 +9,10 @@ export const DIST = ['tests', 'mock', 'dist'];
 export const MERGE_INTO = [...DIST, 'index.d.ts'];
 export const SRC = ['tests', 'mock', 'src'];
 
-export const mockIndexDts = (mergeInto: string | string[]) => {
-  const into = Array.isArray(mergeInto) ? mergeInto : [mergeInto];
-  const p = join(process.cwd(), ...into);
-  console.log('into', p);
-  const templatePath = join(process.cwd(), 'tests', 'mock', 'index.d.ts.template');
-  const template = readFileSync(templatePath, 'utf-8');
-  writeFileSync(p, template);
+export const clear = () => {
+  const dist = join(process.cwd(), ...DIST);
+  rmSync(dist, { force: true, recursive: true });
+  mkdirSync(dist, { recursive: true });
 };
 
 function count(str: string, subStr: string): number {
@@ -41,8 +39,8 @@ function count(str: string, subStr: string): number {
 }
 
 export const read = (key: string, value: any) => {
-  const before = readFileSync(join(process.cwd(), ...MERGE_INTO), 'utf-8');
-  const after = (() => {
+  const after = readFileSync(join(process.cwd(), ...MERGE_INTO), 'utf-8');
+  const before = (() => {
     const srcDir = join(process.cwd(), ...SRC);
     const files: string[] = [];
     recursion(srcDir, files);
@@ -69,6 +67,8 @@ export const read = (key: string, value: any) => {
 };
 
 export function runPlugin(opts: DeepPartial<__ROLLUP_OPTIONS__>) {
+  opts.include ??= [SRC];
+  opts.mergeInto ??= MERGE_INTO;
   const plugin = dtsMerger(opts);
   (plugin.writeBundle as Function)();
 }

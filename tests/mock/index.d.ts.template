@@ -1,4 +1,0 @@
-// exist content
-interface ExistInterface {
-  someProperty: string;
-}

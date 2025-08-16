@@ -1,15 +1,13 @@
 import { describe, it, expect, beforeEach } from 'vitest';
-import { mockIndexDts, read, MERGE_INTO, SRC, DIST, runPlugin } from './misc.js';
+import { clear, read, runPlugin } from './misc.js';
 
 describe('dts-merger plugin', () => {
   beforeEach(() => {
-    mockIndexDts(MERGE_INTO);
+    clear();
   });
 
   it('should merge .d.ts files correctly', () => {
     runPlugin({
-      include: [SRC],
-      mergeInto: DIST.concat('type.d.ts'),
       replace: {
         values: {
           __TYPE__: 'MockType',
@@ -28,8 +26,6 @@ describe('dts-merger plugin', () => {
 
   it('should replace with empty delimiters', () => {
     runPlugin({
-      include: [SRC],
-      mergeInto: DIST.concat('delimiter.d.ts'),
       replace: {
         delimiters: ['', ''],
         values: {
@@ -49,8 +45,6 @@ describe('dts-merger plugin', () => {
 
   it('should prevent assignment replacement', () => {
     runPlugin({
-      include: [SRC],
-      mergeInto: DIST.concat('assignment.d.ts'),
       replace: {
         preventAssignment: true,
         values: {

@@ -77,8 +77,10 @@ export function dtsMerger(options?: DeepPartial<__ROLLUP_OPTIONS__>): Plugin {
     name: '__NAME__',
     writeBundle() {
       if (!existsSync(mergeInto)) {
-        console.warn(`__NAME__ Warning: ${mergeInto} does not exist, skipping.`);
-        return;
+        // & only warns but not quit
+        console.warn(
+          `__NAME__ Warning: It is unexpected that '${mergeInto}' does not exist, please check!`
+        );
       }
 
       const dtsFiles: string[] = [];
