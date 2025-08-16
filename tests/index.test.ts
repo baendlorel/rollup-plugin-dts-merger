@@ -105,7 +105,7 @@ describe('dts-merger plugin', () => {
       ],
       mergeInto: ['tests', 'mock', 'dist', 'normal-excluded.d.ts'],
       replace: {
-        preventDeclaration: true,
+        preventAssignment: true,
         values: {
           __EXCLUDE__: 'excluded',
         },

@@ -44,9 +44,7 @@ export interface __OPTS__ {
    * - `preventAssignment`:
    *    - whether to replace some thing like 'var __NAME__ = xxx;'.
    *    - default is `false`, recommended to set it to `true`.
-   * - `preventDeclaration`:
-   *    - whether to replace some thing like 'var __NAME__: SomeType;'.
-   *    - default is `false`, recommended to set it to `true`.
+   *    - also prevents declaration  like 'var __NAME__: SomeType;'.
    * - `value`: a key-value object to replace expressions in the '.d.ts' files.
    *    - default is `{}`
    * - `delimiters`: used to determine the boundary of the words.
@@ -82,6 +80,8 @@ export interface ReplaceOptions {
 
   /**
    * Default is `false`, but it is recommended to set it to `true`.
+   * - prevents replacing `let __A__ = 10;`, `__B__ = 3;` or other assignments.
+   *   - also prevents replacing declarations like `declare const __NAME__: string;`
    * @example
    * ```typescript
    * // Before
@@ -95,27 +95,12 @@ export interface ReplaceOptions {
    * // After: If preventAssignment: true
    * const __NAME__ = 'a';
    * const ERR_NAME = 'SomeNameError';
+   *
+   * // Also affect declarations
+   * declare const __NAME__: string; // will be prevented too
    * ```
    */
   preventAssignment: boolean;
-
-  /**
-   * Default is `false`, but it is recommended to set it to `true`.
-   * - similar to `preventAssignment` but works for declarations
-   *   - simply, the logic of `=` used in `preventAssignment` is changed to `:`
-   * @example
-   * ```typescript
-   * // Before
-   * declare const __NAME__: string;
-   *
-   * // After: If preventDeclaration: false, values:{ __NAME__: 'SomeName' }
-   * declare const SomeName: string;
-   *
-   * // After: If preventDeclaration: true
-   * declare const __NAME__: string;
-   * ```
-   */
-  preventDeclaration: boolean;
 
   /**
    * A key-value object to replace expressions in the '.d.ts' files.

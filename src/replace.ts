@@ -9,18 +9,6 @@ function longest(a: string, b: string) {
   return b.length - a.length;
 }
 
-function getLookAhead(pa: boolean, pd: boolean): string {
-  if (pa && pd) {
-    return '(?!\\s*[=:][^=:])';
-  } else if (pa) {
-    return '(?!\\s*[=][^=])';
-  } else if (pd) {
-    return '(?!\\s*[:][^:])';
-  } else {
-    return '';
-  }
-}
-
 export function stringify(key: string, value: Any): string {
   switch (typeof value) {
     case 'string':
@@ -48,32 +36,28 @@ export class Replacer {
   private readonly regex: RegExp;
 
   static generateRegExp(options: ReplaceOptions): RegExp {
-    const { delimiters, preventAssignment, preventDeclaration, values } = options;
+    const { delimiters, preventAssignment, values } = options;
     const keys = Object.keys(values).sort(longest).map(escape);
     const [p, s] = delimiters;
 
     // negative lookbehind
-    const nlb = preventAssignment || preventDeclaration ? '(?<!\\b(?:const|let|var)\\s*)' : '';
-
+    const b = preventAssignment ? '(?<!\\b(?:const|let|var)\\s*)' : '';
     // negative lookahead
-    const nla = getLookAhead(preventAssignment, preventDeclaration);
-    return new RegExp(`${nlb}${p}(${keys.join('|')})${s}${nla}`, 'g');
+    const a = preventAssignment ? '(?!\\s*[=:][^=:])' : '';
+
+    return new RegExp(`${b}${delimiters[0]}(${keys.join('|')})${delimiters[1]}${a}`, 'g');
   }
 
   static normalize(replace: DeepPartial<ReplaceOptions>): ReplaceOptions {
     expect(typeof replace === 'object' && replace !== null, `options.replace must be an object`);
-
     const {
       delimiters = ['\\b', '\\b(?!\\.)'],
       preventAssignment = false,
-      preventDeclaration = false,
       values = {},
     } = replace as ReplaceOptions;
 
-    expect(
-      Array.isArray(delimiters) && delimiters.length >= 2,
-      `options.replace.delimiters must be an array of two strings`
-    );
+    expect(Array.isArray(delimiters), `options.replace.delimiters must be an array of two strings`);
+
     expect(
       typeof delimiters[0] === 'string' && typeof delimiters[1] === 'string',
       `options.replace.delimiters must contain two strings`
@@ -85,16 +69,11 @@ export class Replacer {
     );
 
     expect(
-      typeof preventDeclaration === 'boolean',
-      `options.replace.preventAssignment must be a boolean`
-    );
-
-    expect(
       typeof values === 'object' && values !== null,
       `options.replace.values must be an object`
     );
 
-    return { delimiters, preventAssignment, preventDeclaration, values };
+    return { delimiters, preventAssignment, values };
   }
 
   constructor(options: ReplaceOptions) {
