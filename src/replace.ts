@@ -1,11 +1,64 @@
 import { expect } from './common.js';
 import { __ROLLUP_OPTIONS__, Any, DeepPartial, ReplaceOptions } from './types.js';
 
-type RegexTemplate = (key: string) => string;
+function escape(str: string) {
+  return str.replace(/[-[\]/{}()*+?.\\^$|]/g, '\\$&');
+}
+
+function longest(a: string, b: string) {
+  return b.length - a.length;
+}
+
+function getLookAhead(pa: boolean, pd: boolean): string {
+  if (pa && pd) {
+    return '(?!\\s*[=:][^=:])';
+  } else if (pa) {
+    return '(?!\\s*[=][^=])';
+  } else if (pd) {
+    return '(?!\\s*[:][^:])';
+  } else {
+    return '';
+  }
+}
+
+function stringify(key: string, value: Any): string {
+  switch (typeof value) {
+    case 'string':
+      return value;
+    case 'function':
+      return stringify(key, value(key));
+    case 'bigint':
+    case 'number':
+    case 'boolean':
+      return value.toString();
+    case 'undefined':
+      return 'undefined';
+    case 'object':
+      if (value === null) {
+        return 'null';
+      }
+    case 'symbol':
+    default:
+      throw new TypeError(`Unsupported replacement type for key "${key}": ${typeof value}`);
+  }
+}
 
 export class Replacer {
   private readonly values: Record<string, Any>;
-  private readonly regex: RegexTemplate;
+  private readonly regex: RegExp;
+
+  static generateRegExp(options: ReplaceOptions): RegExp {
+    const { delimiters, preventAssignment, preventDeclaration, values } = options;
+    const keys = Object.keys(values).sort(longest).map(escape);
+    const [p, s] = delimiters;
+
+    // const lookAhead = preventAssignment || preventDeclaration ? '(?<!\\b(?:const|let|var|function)\\s*)' : '';
+    // & logic above is from '@rollup/plugin-replace', it only checks for variable declarations
+    // & but ignores expressions like `aaa = 3`, which should be prevented too
+    const lookAhead = '';
+    const lookBehind = getLookAhead(preventAssignment, preventDeclaration);
+    return new RegExp(`${lookAhead}${p}(${keys.join('|')})${s}${lookBehind}`, 'g');
+  }
 
   static normalize(replace: DeepPartial<ReplaceOptions>): ReplaceOptions {
     expect(typeof replace === 'object' && replace !== null, `options.replace must be an object`);
@@ -44,52 +97,16 @@ export class Replacer {
     return { delimiters, preventAssignment, preventDeclaration, values };
   }
 
-  static generateRegexTemplate(options: ReplaceOptions): RegexTemplate {
-    const { delimiters, preventAssignment, preventDeclaration } = options;
-    const [p, s] = delimiters;
-    if (preventAssignment && preventDeclaration) {
-      return (key: string) => `${p}${key}${s}(?!\\s*[=:])`;
-    } else if (preventAssignment) {
-      return (key: string) => `${p}${key}${s}(?!\\s*[=])`;
-    } else if (preventDeclaration) {
-      return (key: string) => `${p}${key}${s}(?!\\s*[:])`;
-    } else {
-      return (key: string) => `${p}${key}${s}`;
-    }
-  }
-
   constructor(options: ReplaceOptions) {
     this.values = options.values;
-    this.regex = Replacer.generateRegexTemplate(options);
-  }
-
-  static stringify(key: string, value: Any): string {
-    switch (typeof value) {
-      case 'string':
-        return value;
-      case 'function':
-        return Replacer.stringify(key, value(key));
-      case 'bigint':
-      case 'number':
-      case 'boolean':
-        return value.toString();
-      case 'undefined':
-        return 'undefined';
-      case 'object':
-        if (value === null) {
-          return 'null';
-        }
-      case 'symbol':
-      default:
-        throw new TypeError(`Unsupported replacement type for key "${key}": ${typeof value}`);
-    }
+    this.regex = Replacer.generateRegExp(options);
   }
 
   apply(content: string) {
-    for (const [key, value] of Object.entries(this.values)) {
-      const replacement = Replacer.stringify(key, value);
-      const pattern = this.regex(key);
-      content = content.replace(pattern, replacement);
+    const entries = Object.entries(this.values);
+    for (let i = 0; i < entries.length; i++) {
+      const replacement = stringify(entries[i][0], entries[i][1]);
+      content = content.replace(this.regex, replacement);
     }
     return content;
   }
