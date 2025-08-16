@@ -2,7 +2,7 @@ import { join } from 'node:path';
 import { mkdirSync, readFileSync, rmSync } from 'node:fs';
 
 import { dtsMerger, recursion } from '../src/dts-merger.js';
-import { Replacer } from '../src/replace.js';
+import { stringify } from '../src/replace.js';
 import { __ROLLUP_OPTIONS__, DeepPartial } from '../src/types.js';
 
 export const DIST = ['tests', 'mock', 'dist'];
@@ -54,7 +54,7 @@ export const read = (key: string, value: any) => {
     return result.join('\n');
   })();
 
-  const v = Replacer.stringify(key, value);
+  const v = stringify(key, value);
 
   return {
     before,

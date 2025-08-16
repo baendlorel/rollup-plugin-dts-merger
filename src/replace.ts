@@ -21,7 +21,7 @@ function getLookAhead(pa: boolean, pd: boolean): string {
   }
 }
 
-function stringify(key: string, value: Any): string {
+export function stringify(key: string, value: Any): string {
   switch (typeof value) {
     case 'string':
       return value;
