@@ -66,9 +66,9 @@ export const read = (key: string, value: any) => {
   };
 };
 
-export function runPlugin(opts: DeepPartial<__ROLLUP_OPTIONS__>) {
+export function runPlugin(name: string, opts: DeepPartial<__ROLLUP_OPTIONS__>) {
   opts.include ??= [SRC];
-  opts.mergeInto ??= MERGE_INTO;
+  opts.mergeInto ??= DIST.concat(name);
   const plugin = dtsMerger(opts);
   (plugin.writeBundle as Function)();
 }

@@ -6,19 +6,30 @@ import { __ROLLUP_OPTIONS__, __STRICT_ROLLUP_OPTIONS__, DeepPartial } from './ty
 import { expect } from './common.js';
 import { Replacer } from './replace.js';
 
+function isExistedDir(fullPath: string) {
+  return statSync(fullPath).isDirectory();
+}
+
+function isExistedDts(fullPath: string) {
+  return statSync(fullPath).isFile() && fullPath.endsWith('.d.ts');
+}
+
 export function recursion(dir: string, result: string[]) {
-  for (const file of readdirSync(dir)) {
-    const fullPath = pathJoin(dir, file);
+  for (const item of readdirSync(dir)) {
+    const fullPath = pathJoin(dir, item);
     if (!existsSync(fullPath)) {
-      throw new Error(`File not found: ${fullPath}`);
-    }
-    if (file.endsWith('.d.ts')) {
-      result.push(fullPath);
+      console.warn(`__NAME__ Warning: '${fullPath}' does not exist, please check!`);
       continue;
     }
-    const stat = statSync(fullPath);
-    if (stat.isDirectory()) {
+
+    if (isExistedDir(fullPath)) {
       recursion(fullPath, result);
+      continue;
+    }
+
+    if (isExistedDts(fullPath)) {
+      result.push(fullPath);
+      continue;
     }
   }
 }

@@ -33,7 +33,10 @@ export interface __ROLLUP_OPTIONS__ {
    * Simple replace options inspired by '@rollup/plugin-replace', not such powerful as the original one.
    * - `preventAssignment`:
    *    - whether to replace some thing like 'var __NAME__ = xxx;'.
-   *    - default is `false`, recommended to set it to `true`. But keep it the same as '@rollup/plugin-replace'
+   *    - default is `false`, recommended to set it to `true`.
+   * - `preventDeclaration`:
+   *    - whether to replace some thing like 'var __NAME__: SomeType;'.
+   *    - default is `false`, recommended to set it to `true`.
    * - `value`: a key-value object to replace expressions in the '.d.ts' files.
    *    - default is `{}`
    * - `delimiters`: used to determine the boundary of the words.

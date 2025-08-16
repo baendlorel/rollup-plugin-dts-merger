@@ -1,8 +1,8 @@
-import { describe, it, expect, beforeEach } from 'vitest';
+import { describe, it, expect, beforeAll } from 'vitest';
 import { clear, read, runPlugin } from './misc.js';
 
 describe('dts-merger plugin', () => {
-  beforeEach(() => {
+  beforeAll(() => {
     clear();
   });
 
