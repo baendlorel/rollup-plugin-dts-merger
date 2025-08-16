@@ -9,6 +9,9 @@ function longest(a: string, b: string) {
 }
 
 export function stringify(key: string, value: Any): string {
+  if (value === null) {
+    return 'null';
+  }
   switch (typeof value) {
     case 'string':
       return value;
@@ -17,52 +20,47 @@ export function stringify(key: string, value: Any): string {
     case 'bigint':
     case 'number':
     case 'boolean':
-      return value.toString();
     case 'undefined':
-      return 'undefined';
+      return String(value);
     case 'object':
-      if (value === null) {
-        return 'null';
-      }
     case 'symbol':
     default:
       throw new TypeError(`Unsupported replacement type for key "${key}": ${typeof value}`);
   }
 }
+export function normalizeReplace(replace: DeepPartial<ReplaceOptions>): ReplaceOptions | string {
+  if (typeof replace !== 'object' || replace === null) {
+    return `options.replace must be an object`;
+  }
+
+  const {
+    delimiters = ['\\b', '\\b(?!\\.)'],
+    preventAssignment = false,
+    values = {},
+  } = replace as ReplaceOptions;
+
+  if (!Array.isArray(delimiters)) {
+    return `options.replace.delimiters must be an array of two strings`;
+  }
+
+  if (typeof delimiters[0] !== 'string' || typeof delimiters[1] !== 'string') {
+    return `options.replace.delimiters must contain two strings`;
+  }
+
+  if (typeof preventAssignment !== 'boolean') {
+    return `options.replace.preventAssignment must be a boolean`;
+  }
+
+  if (typeof values !== 'object' || values === null) {
+    return `options.values must be an object`;
+  }
+
+  return { delimiters, preventAssignment, values };
+}
 
 export class Replacer {
   private readonly map: Record<string, string>;
   private readonly regex: RegExp;
-
-  static normalize(replace: DeepPartial<ReplaceOptions>): ReplaceOptions | string {
-    if (typeof replace !== 'object' || replace === null) {
-      return `options.replace must be an object`;
-    }
-
-    const {
-      delimiters = ['\\b', '\\b(?!\\.)'],
-      preventAssignment = false,
-      values = {},
-    } = replace as ReplaceOptions;
-
-    if (!Array.isArray(delimiters)) {
-      return `options.replace.delimiters must be an array of two strings`;
-    }
-
-    if (typeof delimiters[0] !== 'string' || typeof delimiters[1] !== 'string') {
-      return `options.replace.delimiters must contain two strings`;
-    }
-
-    if (typeof preventAssignment !== 'boolean') {
-      return `options.replace.preventAssignment must be a boolean`;
-    }
-
-    if (typeof values !== 'object' || values === null) {
-      return `options.values must be an object`;
-    }
-
-    return { delimiters, preventAssignment, values };
-  }
 
   constructor(options: ReplaceOptions) {
     this.map = this.generateMap(options.values);
@@ -89,7 +87,7 @@ export class Replacer {
     return new RegExp(`${b}${d[0]}(${keys.join('|')})${d[1]}${a}`, 'g');
   }
 
-  apply(content: string) {
+  exec(content: string) {
     return content.replace(this.regex, (_, $1) => this.map[$1]);
   }
 }

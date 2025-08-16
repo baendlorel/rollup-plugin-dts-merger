@@ -1,1 +1,1 @@
-export * from './dts-merger.js';
+export { dtsMerger } from './dts-merger.js';

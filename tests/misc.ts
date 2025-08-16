@@ -48,7 +48,7 @@ export class PluginRunner {
     opts.include ??= [SRC.concat(name)];
     opts.mergeInto ??= DIST.concat(name);
     this.plugin = dtsMerger(opts);
-    this.opts = (this.plugin as any).__KSKBTMG__;
+    this.opts = (this.plugin as any).__KSKB_TUMUGI__;
     this.writeBundle = (this.plugin as any).writeBundle.bind(this.plugin);
   }
 

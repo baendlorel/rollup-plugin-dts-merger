@@ -3,7 +3,7 @@ import { readdirSync, readFileSync, existsSync, statSync, appendFileSync } from 
 import type { Plugin, PluginContext, RollupError } from 'rollup';
 
 import { __OPTS__, __STRICT_OPTS__, DeepPartial } from './types.js';
-import { Replacer } from './replace.js';
+import { normalizeReplace, Replacer } from './replace.js';
 
 function isExistedDir(fullPath: string) {
   try {
@@ -76,7 +76,7 @@ function normalize(options?: DeepPartial<__OPTS__>): __STRICT_OPTS__ | string {
     return `options.include and options.exclude must not share any items`;
   }
 
-  const replace = Replacer.normalize(rawReplace);
+  const replace = normalizeReplace(rawReplace);
   if (typeof replace === 'string') {
     return replace;
   }
@@ -160,14 +160,14 @@ export function dtsMerger(options?: DeepPartial<__OPTS__>): Plugin {
         const file = dtsFiles[i];
         const relativePath = relative(cwd, file);
         const content = readFileSync(file, 'utf8');
-        const replaced = replacer.apply(content);
+        const replaced = replacer.exec(content);
         const s = `\n// \u0023 from: ${relativePath}\n`.concat(replaced);
         appendFileSync(mergeInto, s, 'utf8');
       }
     },
   };
 
-  Object.defineProperty(plugin, '__KSKBTMG__', {
+  Object.defineProperty(plugin, '__KSKB_TUMUGI__', {
     value: opts,
   });
 
