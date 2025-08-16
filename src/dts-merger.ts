@@ -1,5 +1,4 @@
-import path from 'node:path';
-import console from 'node:console';
+import { join, relative } from 'node:path';
 import { readdirSync, readFileSync, existsSync, statSync, appendFileSync } from 'node:fs';
 import type { Plugin } from 'rollup';
 
@@ -9,7 +8,7 @@ import { Replacer } from './replace';
 
 function recursion(dir: string, result: string[]) {
   for (const file of readdirSync(dir)) {
-    const fullPath = path.join(dir, file);
+    const fullPath = join(dir, file);
     if (!existsSync(fullPath)) {
       throw new Error(`File not found: ${fullPath}`);
     }
@@ -53,9 +52,9 @@ function normalize(options?: DeepPartial<__ROLLUP_OPTIONS__>): __ROLLUP_OPTIONS_
   expect(typeof values === 'object' && values !== null, `options.replace.values must be an object`);
 
   const cwd = process.cwd();
-  const include = rawInclude.map((i) => path.join(cwd, i));
+  const include = rawInclude.map((i) => join(cwd, i));
   if (include.length === 0) {
-    include.push(cwd);
+    include.push(join(cwd, 'src'));
   }
 
   return {
@@ -66,7 +65,25 @@ function normalize(options?: DeepPartial<__ROLLUP_OPTIONS__>): __ROLLUP_OPTIONS_
 }
 
 /**
- * Find all .d.ts files in src and prepend their content to dist/index.d.ts
+ * ## Intro
+ * Find all `.d.ts` files in directories(default: 'src') as your provided. Then append their content to the target declaration file, default (default: 'dist/index.d.ts')
+ *
+ * __NAME__ has a built in simple replacer which looks like '@rollup/plugin-replace', shares some same options.
+ *
+ * ## Usage
+ * Put it in plugins array in rollup.config.js
+ * @example
+ * ```typescript
+ * {
+ *   input: 'src/index.ts',
+ *   output: [{ file: 'dist/index.d.ts', format: 'es' }],
+ *   plugins: [dts({ tsconfig }), dtsMerger()],
+ * }
+ * ```
+ * You can use options(__ROLLUP_OPTIONS__) to customize the behavior
+ *
+ *
+ * __PKG_INFO__
  */
 export function dtsMerger(options?: DeepPartial<__ROLLUP_OPTIONS__>): Plugin {
   const cwd = process.cwd();
@@ -88,7 +105,7 @@ export function dtsMerger(options?: DeepPartial<__ROLLUP_OPTIONS__>): Plugin {
 
       for (let i = 0; i < dtsFiles.length; i++) {
         const file = dtsFiles[i];
-        const relativePath = path.relative(cwd, file);
+        const relativePath = relative(cwd, file);
         const content = readFileSync(file, 'utf8');
         const replaced = replacer.apply(content);
         const s = `\n// \u0023 from: ${relativePath}\n`.concat(replaced);

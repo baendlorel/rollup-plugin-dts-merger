@@ -15,8 +15,8 @@ export type DeepPartial<T> = {
 
 export interface __ROLLUP_OPTIONS__ {
   /**
-   * Will concat the paths with `process.pwd()`
-   * - if omitted, will use `process.cwd()` directly
+   * Will join the given paths with `process.pwd()`
+   * - if omitted, will use `<process.cwd()>/src`
    * @example path.join(process.cwd(), include[0])
    */
   include: string[];
