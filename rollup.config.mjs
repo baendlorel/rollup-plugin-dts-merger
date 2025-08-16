@@ -51,6 +51,7 @@ export default [
       replace(replaceOpts),
       resolve(),
       commonjs(),
+      typescript({ tsconfig }),
       babel({
         babelHelpers: 'bundled',
         extensions: ['.ts', '.tsx', '.js', '.jsx'],
@@ -64,7 +65,6 @@ export default [
           ],
         ],
       }),
-      typescript({ tsconfig }),
       terser({
         format: {
           comments: false, // remove comments

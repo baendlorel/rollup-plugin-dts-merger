@@ -67,7 +67,8 @@ export interface __ROLLUP_OPTIONS__ {
 
     /**
      * A key-value object to replace expressions in the '.d.ts' files.
-     * - if `value` is a function, it will be called and the return value will be used as the replacement.
+     * - if `value` is a function, it will be called with `key` and the return value will be used as the replacement.
+     *   - this means then meet `{ key: 'fn' }`, then `fn` will be called as `fn(key)` and use the result to stringify.
      * - otherwise, just stringify the value.
      */
     values: Record<string, Any>;

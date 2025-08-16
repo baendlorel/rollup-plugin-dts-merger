@@ -2,9 +2,9 @@ import { join, relative } from 'node:path';
 import { readdirSync, readFileSync, existsSync, statSync, appendFileSync } from 'node:fs';
 import type { Plugin } from 'rollup';
 
-import { __ROLLUP_OPTIONS__, DeepPartial } from './types';
-import { expect } from './common';
-import { Replacer } from './replace';
+import { __ROLLUP_OPTIONS__, DeepPartial } from './types.js';
+import { expect } from './common.js';
+import { Replacer } from './replace.js';
 
 function recursion(dir: string, result: string[]) {
   for (const file of readdirSync(dir)) {
@@ -27,29 +27,12 @@ function normalize(options?: DeepPartial<__ROLLUP_OPTIONS__>): __ROLLUP_OPTIONS_
   const {
     include: rawInclude = [],
     mergeInto = 'index.d.ts',
-    replace = {},
+    replace: rawReplace = {},
   } = Object(options) as __ROLLUP_OPTIONS__;
   expect(Array.isArray(rawInclude), `options.include must be an array`);
   expect(typeof mergeInto === 'string', `options.mergeInto must be a string`);
-  expect(typeof replace === 'object' && replace !== null, `options.replace must be an object`);
 
-  const {
-    delimiters = ['\\b', '\\b(?!\\.)'],
-    preventAssignment = false,
-    values = {},
-  } = replace as __ROLLUP_OPTIONS__['replace'];
-  expect(
-    Array.isArray(delimiters) && delimiters.length === 2,
-    `options.replace.delimiters must be an array of two strings`
-  );
-  delimiters.forEach((d) =>
-    expect(typeof d === 'string', `options.replace.delimiters must contain two strings`)
-  );
-  expect(
-    typeof preventAssignment === 'boolean',
-    `options.replace.preventAssignment must be a boolean`
-  );
-  expect(typeof values === 'object' && values !== null, `options.replace.values must be an object`);
+  const replace = Replacer.normalize(rawReplace);
 
   const cwd = process.cwd();
   const include = rawInclude.map((i) => join(cwd, i));
@@ -60,7 +43,7 @@ function normalize(options?: DeepPartial<__ROLLUP_OPTIONS__>): __ROLLUP_OPTIONS_
   return {
     include,
     mergeInto,
-    replace: { delimiters, preventAssignment, values },
+    replace,
   };
 }
 

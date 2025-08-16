@@ -2,7 +2,7 @@
   "name": "rollup-plugin-dts-merger",
   "version": "1.0.0",
   "description": "A Rollup plugin for merging TypeScript declaration files",
-  "module": "dist/index.js",
+  "type": "module",
   "exports": {
     "types": "./dist/index.d.ts",
     "import": "./dist/index.mjs",
