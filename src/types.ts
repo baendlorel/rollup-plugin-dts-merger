@@ -16,16 +16,18 @@ export type DeepPartial<T> = {
 export interface __ROLLUP_OPTIONS__ {
   /**
    * Will join the given paths with `process.pwd()`
-   * - if omitted, will use `<process.cwd()>/src`
-   * @example path.join(process.cwd(), include[0])
+   * - if omitted, will use `path.join(<cwd>,'src)`
+   * - if item is an array, will use `path.join(<cwd>,...item)`
+   * @example path.join(<cwd>, include[0])
    */
-  include: string[];
+  include: (string | string[])[];
 
   /**
    * The file to merge into, relative to `process.cwd()`
+   * - if it is an array, will use `path.join(<cwd>,...mergeInto)`
    * @example 'dist/index.d.ts'
    */
-  mergeInto: string;
+  mergeInto: string | string[];
 
   /**
    * Simple replace options inspired by '@rollup/plugin-replace', not such powerful as the original one.
@@ -33,6 +35,12 @@ export interface __ROLLUP_OPTIONS__ {
    * - `value`: a key-value object to replace expressions in the '.d.ts' files.
    * - `delimiters`: used to determine the boundary of the words.
    */
+  replace: ReplaceOptions;
+}
+
+export interface __STRICT_ROLLUP_OPTIONS__ {
+  include: string[];
+  mergeInto: string;
   replace: ReplaceOptions;
 }
 

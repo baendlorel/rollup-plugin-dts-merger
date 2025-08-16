@@ -1,14 +1,14 @@
-import { join, relative } from 'node:path';
+import { join as pathJoin, relative } from 'node:path';
 import { readdirSync, readFileSync, existsSync, statSync, appendFileSync } from 'node:fs';
 import type { Plugin } from 'rollup';
 
-import { __ROLLUP_OPTIONS__, DeepPartial } from './types.js';
+import { __ROLLUP_OPTIONS__, __STRICT_ROLLUP_OPTIONS__, DeepPartial } from './types.js';
 import { expect } from './common.js';
 import { Replacer } from './replace.js';
 
 function recursion(dir: string, result: string[]) {
   for (const file of readdirSync(dir)) {
-    const fullPath = join(dir, file);
+    const fullPath = pathJoin(dir, file);
     if (!existsSync(fullPath)) {
       throw new Error(`File not found: ${fullPath}`);
     }
@@ -23,27 +23,26 @@ function recursion(dir: string, result: string[]) {
   }
 }
 
-function normalize(options?: DeepPartial<__ROLLUP_OPTIONS__>): __ROLLUP_OPTIONS__ {
+function normalize(options?: DeepPartial<__ROLLUP_OPTIONS__>): __STRICT_ROLLUP_OPTIONS__ {
   const {
-    include: rawInclude = [],
-    mergeInto = 'index.d.ts',
+    include: include = [],
+    mergeInto: rawMergeInto = 'index.d.ts',
     replace: rawReplace = {},
   } = Object(options) as __ROLLUP_OPTIONS__;
-  expect(Array.isArray(rawInclude), `options.include must be an array`);
-  expect(typeof mergeInto === 'string', `options.mergeInto must be a string`);
-
-  const replace = Replacer.normalize(rawReplace);
+  expect(Array.isArray(include), `options.include must be an array`);
+  expect(
+    typeof rawMergeInto === 'string' || Array.isArray(rawMergeInto),
+    `options.mergeInto must be a string`
+  );
 
   const cwd = process.cwd();
-  const include = rawInclude.map((i) => join(cwd, i));
-  if (include.length === 0) {
-    include.push(join(cwd, 'src'));
-  }
+  const join = (p: string | string[]) =>
+    Array.isArray(p) ? pathJoin(cwd, ...p) : pathJoin(cwd, p);
 
   return {
-    include,
-    mergeInto,
-    replace,
+    include: include.length ? include.map((item) => join(item)) : [join('src')],
+    mergeInto: join(rawMergeInto),
+    replace: Replacer.normalize(rawReplace),
   };
 }
 
@@ -81,6 +80,7 @@ export function dtsMerger(options?: DeepPartial<__ROLLUP_OPTIONS__>): Plugin {
         console.warn(`__NAME__ Warning: ${mergeInto} does not exist, skipping.`);
         return;
       }
+
       const dtsFiles: string[] = [];
       for (let i = 0; i < include.length; i++) {
         recursion(include[i], dtsFiles);
