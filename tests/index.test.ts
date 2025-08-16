@@ -1,7 +1,5 @@
 import { describe, it, expect, beforeEach } from 'vitest';
-import { dtsMerger } from '../src/index.js';
-
-import { mockIndexDts, read, MERGE_INTO, SRC, count } from './misc.js';
+import { mockIndexDts, read, MERGE_INTO, SRC, DIST, runPlugin } from './misc.js';
 
 describe('dts-merger plugin', () => {
   beforeEach(() => {
@@ -9,34 +7,29 @@ describe('dts-merger plugin', () => {
   });
 
   it('should merge .d.ts files correctly', () => {
-    const plugin = dtsMerger({
+    runPlugin({
       include: [SRC],
-      mergeInto: MERGE_INTO,
+      mergeInto: DIST.concat('type.d.ts'),
       replace: {
         values: {
           __TYPE__: 'MockType',
         },
       },
     });
-    (plugin.writeBundle as Function)();
 
-    const { after, before } = read();
-    const a = count(after, 'MockType');
-    const b = count(before, '__TYPE__');
-
-    expect(after).toContain('MockType');
-    expect(before).not.toContain('MockType');
-
-    expect(after).not.toContain('__TYPE__');
-    expect(before).toContain('__TYPE__');
-
-    expect(a).toEqual(b);
+    const result = read('__TYPE__', 'MockType');
+    expect(result).toMatchObject({
+      beforeKey: 3,
+      beforeValue: 0,
+      afterKey: 0,
+      afterValue: 3,
+    });
   });
 
   it('should replace with empty delimiters', () => {
-    const plugin = dtsMerger({
+    runPlugin({
       include: [SRC],
-      mergeInto: MERGE_INTO,
+      mergeInto: DIST.concat('delimiter.d.ts'),
       replace: {
         delimiters: ['', ''],
         values: {
@@ -44,32 +37,34 @@ describe('dts-merger plugin', () => {
         },
       },
     });
-    (plugin.writeBundle as Function)();
-    const { before, after } = read();
-    const b = count(before, '__DILIMITER__');
-    expect(b).toBe(2);
-    expect(before).toContain('__DILIMITER__');
-    expect(before).not.toContain('AAAkasukabeAAA');
 
-    const a = count(after, '__DILIMITER__');
-    expect(a).toBe(1);
-    expect(after).toContain('AAAkasukabeAAA');
-    expect(after).not.toContain('__DILIMITER__');
+    const result = read('__DILIMITER__', 'kasukabe');
+    expect(result).toMatchObject({
+      beforeKey: 2,
+      beforeValue: 0,
+      afterKey: 0,
+      afterValue: 2,
+    });
   });
 
   it('should prevent assignment replacement', () => {
-    const plugin = dtsMerger({
+    runPlugin({
       include: [SRC],
-      mergeInto: MERGE_INTO,
+      mergeInto: DIST.concat('assignment.d.ts'),
       replace: {
         preventAssignment: true,
         values: {
-          __TYPE__: 'PreventAssignType',
+          __ASSIGN__: 'Assigned',
         },
       },
     });
-    (plugin.writeBundle as Function)();
-    const { after } = read();
-    expect(after).toContain('PreventAssignType');
+
+    const result = read('__ASSIGN__', 'Assigned');
+    expect(result).toMatchObject({
+      beforeKey: 2,
+      beforeValue: 0,
+      afterKey: 1,
+      afterValue: 1,
+    });
   });
 });

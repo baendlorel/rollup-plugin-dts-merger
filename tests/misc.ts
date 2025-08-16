@@ -1,8 +1,11 @@
 import { join } from 'node:path';
 import { readFileSync, writeFileSync } from 'node:fs';
-import { recursion } from '../src/dts-merger.js';
+import { dtsMerger, recursion } from '../src/dts-merger.js';
+import { Replacer } from '../src/replace.js';
+import { __ROLLUP_OPTIONS__, DeepPartial } from '../src/types.js';
 
-export const MERGE_INTO = ['tests', 'mock', 'dist', 'index.d.ts'];
+export const DIST = ['tests', 'mock', 'dist'];
+export const MERGE_INTO = [...DIST, 'index.d.ts'];
 export const SRC = ['tests', 'mock', 'src'];
 
 export const mockIndexDts = (mergeInto: string | string[]) => {
@@ -14,29 +17,7 @@ export const mockIndexDts = (mergeInto: string | string[]) => {
   writeFileSync(p, template);
 };
 
-export const read = () => {
-  const readResult = () => readFileSync(join(process.cwd(), ...MERGE_INTO), 'utf-8');
-  const readInclude = () => {
-    const srcDir = join(process.cwd(), ...SRC);
-    const files: string[] = [];
-    recursion(srcDir, files);
-    const result: string[] = [];
-
-    for (let i = 0; i < files.length; i++) {
-      const content = readFileSync(files[i], 'utf-8');
-      result.push(content);
-    }
-
-    return result.join('\n');
-  };
-
-  return {
-    before: readInclude(),
-    after: readResult(),
-  };
-};
-
-export function count(str: string, subStr: string): number {
+function count(str: string, subStr: string): number {
   if (!str) {
     return 0;
   }
@@ -57,4 +38,37 @@ export function count(str: string, subStr: string): number {
   }
 
   return count;
+}
+
+export const read = (key: string, value: any) => {
+  const before = readFileSync(join(process.cwd(), ...MERGE_INTO), 'utf-8');
+  const after = (() => {
+    const srcDir = join(process.cwd(), ...SRC);
+    const files: string[] = [];
+    recursion(srcDir, files);
+    const result: string[] = [];
+
+    for (let i = 0; i < files.length; i++) {
+      const content = readFileSync(files[i], 'utf-8');
+      result.push(content);
+    }
+
+    return result.join('\n');
+  })();
+
+  const v = Replacer.stringify(key, value);
+
+  return {
+    before,
+    after,
+    beforeKey: count(before, key),
+    beforeValue: count(before, v),
+    afterKey: count(after, key),
+    afterValue: count(after, v),
+  };
+};
+
+export function runPlugin(opts: DeepPartial<__ROLLUP_OPTIONS__>) {
+  const plugin = dtsMerger(opts);
+  (plugin.writeBundle as Function)();
 }

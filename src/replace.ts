@@ -42,12 +42,12 @@ export class Replacer {
     this.delimiters = options.delimiters;
   }
 
-  stringify(key: string, value: Any): string {
+  static stringify(key: string, value: Any): string {
     switch (typeof value) {
       case 'string':
         return value;
       case 'function':
-        return this.stringify(key, value(key));
+        return Replacer.stringify(key, value(key));
       case 'bigint':
       case 'number':
       case 'boolean':
@@ -74,7 +74,7 @@ export class Replacer {
 
   apply(content: string) {
     for (const [key, value] of Object.entries(this.values)) {
-      const replacement = this.stringify(key, value);
+      const replacement = Replacer.stringify(key, value);
       const pattern = this.regex(key);
       content = content.replace(pattern, replacement);
     }
