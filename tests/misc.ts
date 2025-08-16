@@ -45,18 +45,18 @@ export class PluginRunner {
   private readonly writeBundle: () => void;
 
   constructor(name: string, opts: DeepPartial<__OPTS__>) {
-    opts.include ??= [SRC];
+    opts.include ??= [SRC.concat(name)];
     opts.mergeInto ??= DIST.concat(name);
     this.plugin = dtsMerger(opts);
     this.opts = (this.plugin as any).__KSKBTMG__;
 
-    this.writeBundle = (this.plugin as any).writeBundle;
+    this.writeBundle = (this.plugin as any).writeBundle.bind(this.plugin);
   }
 
   private read(key: string, value: any) {
-    const after = readFileSync(join(process.cwd(), ...MERGE_INTO), 'utf-8');
+    const after = readFileSync(join(this.opts.mergeInto), 'utf-8');
     const before = (() => {
-      const srcDir = join(process.cwd(), ...SRC);
+      const srcDir = join(...this.opts.include);
       const files: string[] = [];
       recursion(this.opts.exclude, srcDir, files);
       const result: string[] = [];

@@ -24,16 +24,15 @@ describe('dts-merger plugin', () => {
   });
 
   it('should replace with empty delimiters', () => {
-    run('delimiter.d.ts', {
+    const result = new PluginRunner('delimiter.d.ts', {
       replace: {
         delimiters: ['', ''],
         values: {
           __DILIMITER__: 'kasukabe',
         },
       },
-    });
+    }).run('__DILIMITER__', 'kasukabe');
 
-    const result = read('__DILIMITER__', 'kasukabe');
     expect(result).toMatchObject({
       beforeKey: 2,
       beforeValue: 0,
@@ -42,17 +41,38 @@ describe('dts-merger plugin', () => {
     });
   });
 
-  it('should prevent assignment replacement', () => {
-    run('assignment.d.ts', {
+  it('should prevent assignment', () => {
+    const result = new PluginRunner('prevented-assignment.d.ts', {
+      include: [['tests', 'mock', 'src', 'assignment.d.ts']],
+      mergeInto: ['tests', 'mock', 'dist', 'prevented-assignment.d.ts'],
       replace: {
         preventAssignment: true,
         values: {
           __ASSIGN__: 'Assigned',
         },
       },
-    });
+    }).run('__ASSIGN__', 'Assigned');
 
-    const result = read('__ASSIGN__', 'Assigned');
+    expect(result).toMatchObject({
+      beforeKey: 2,
+      beforeValue: 0,
+      afterKey: 1,
+      afterValue: 1,
+    });
+  });
+
+  it('should replace assignment', () => {
+    const result = new PluginRunner('assignment.d.ts', {
+      include: [['tests', 'mock', 'src', 'assignment.d.ts']],
+      mergeInto: ['tests', 'mock', 'dist', 'replaced-assignment.d.ts'],
+      replace: {
+        preventAssignment: true,
+        values: {
+          __ASSIGN__: 'Assigned',
+        },
+      },
+    }).run('__ASSIGN__', 'Assigned');
+
     expect(result).toMatchObject({
       beforeKey: 2,
       beforeValue: 0,
@@ -62,13 +82,12 @@ describe('dts-merger plugin', () => {
   });
 
   it('should keep', () => {
-    run('keep.d.ts', {
+    const result = new PluginRunner('keep.d.ts', {
       replace: {
         preventAssignment: true,
       },
-    });
+    }).run('__IB__', 'adsfas');
 
-    const result = read('__IB__', 'adsfas');
     expect(result).toMatchObject({
       beforeKey: 2,
       beforeValue: 0,

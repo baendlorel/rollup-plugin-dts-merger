@@ -33,7 +33,7 @@ export const replaceOpts = {
   values: {
     __NAME__,
     __PKG_INFO__,
-    __ROLLUP_OPTIONS__: `Rollup${__NAME__}Options`,
-    __STRICT_ROLLUP_OPTIONS__: `Rollup${__NAME__}StrictOptions`,
+    __OPTS__: `Rollup${__NAME__}Options`,
+    __STRICT_OPTS__: `Rollup${__NAME__}StrictOptions`,
   },
 };

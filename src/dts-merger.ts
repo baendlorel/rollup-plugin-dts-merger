@@ -102,10 +102,10 @@ export function dtsMerger(options?: DeepPartial<__OPTS__>): Plugin {
     name: '__NAME__',
     writeBundle() {
       if (!existsSync(mergeInto)) {
+        const rel = relative(cwd, mergeInto);
         // & only warns but not quit
-        console.warn(
-          `__NAME__ Warning: It is unexpected that '${mergeInto}' does not exist, please check!`
-        );
+        const warn = this?.warn ?? console.warn;
+        warn(`__NAME__ : '${rel}' does not exist, please check the order of plugins!`);
       }
 
       const dtsFiles: string[] = [];
