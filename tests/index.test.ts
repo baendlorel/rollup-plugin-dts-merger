@@ -1,21 +1,20 @@
 import { describe, it, expect, beforeAll } from 'vitest';
-import { clear, read, runPlugin } from './misc.js';
+import { PluginRunner } from './misc.js';
 
 describe('dts-merger plugin', () => {
   beforeAll(() => {
-    clear();
+    PluginRunner.clear();
   });
 
   it('should merge .d.ts files correctly', () => {
-    runPlugin({
+    const result = new PluginRunner('normal.d.ts', {
       replace: {
         values: {
           __TYPE__: 'MockType',
         },
       },
-    });
+    }).run('__TYPE__', 'MockType');
 
-    const result = read('__TYPE__', 'MockType');
     expect(result).toMatchObject({
       beforeKey: 3,
       beforeValue: 0,
@@ -25,7 +24,7 @@ describe('dts-merger plugin', () => {
   });
 
   it('should replace with empty delimiters', () => {
-    runPlugin({
+    run('delimiter.d.ts', {
       replace: {
         delimiters: ['', ''],
         values: {
@@ -44,7 +43,7 @@ describe('dts-merger plugin', () => {
   });
 
   it('should prevent assignment replacement', () => {
-    runPlugin({
+    run('assignment.d.ts', {
       replace: {
         preventAssignment: true,
         values: {
@@ -59,6 +58,22 @@ describe('dts-merger plugin', () => {
       beforeValue: 0,
       afterKey: 1,
       afterValue: 1,
+    });
+  });
+
+  it('should keep', () => {
+    run('keep.d.ts', {
+      replace: {
+        preventAssignment: true,
+      },
+    });
+
+    const result = read('__IB__', 'adsfas');
+    expect(result).toMatchObject({
+      beforeKey: 2,
+      beforeValue: 0,
+      afterKey: 2,
+      afterValue: 0,
     });
   });
 });

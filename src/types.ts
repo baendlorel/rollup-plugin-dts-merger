@@ -13,7 +13,7 @@ export type DeepPartial<T> = {
   [P in keyof T]?: T[P] extends object ? DeepPartial<T[P]> : T[P];
 };
 
-export interface __ROLLUP_OPTIONS__ {
+export interface __OPTS__ {
   /**
    * Relative paths, will join the given paths with `process.pwd()`
    * - if item is `string[]`, will use `path.join(<cwd>,...item)`
@@ -56,7 +56,7 @@ export interface __ROLLUP_OPTIONS__ {
   replace: ReplaceOptions;
 }
 
-export interface __STRICT_ROLLUP_OPTIONS__ {
+export interface __STRICT_OPTS__ {
   include: Set<string>;
   exclude: Set<string>;
   mergeInto: string;

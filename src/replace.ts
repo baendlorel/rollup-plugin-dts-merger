@@ -1,5 +1,5 @@
 import { expect } from './common.js';
-import { __ROLLUP_OPTIONS__, Any, DeepPartial, ReplaceOptions } from './types.js';
+import { __OPTS__, Any, DeepPartial, ReplaceOptions } from './types.js';
 
 function escape(str: string) {
   return str.replace(/[-[\]/{}()*+?.\\^$|]/g, '\\$&');

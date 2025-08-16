@@ -2,7 +2,7 @@ import { join as pathJoin, relative } from 'node:path';
 import { readdirSync, readFileSync, existsSync, statSync, appendFileSync } from 'node:fs';
 import type { Plugin } from 'rollup';
 
-import { __ROLLUP_OPTIONS__, __STRICT_ROLLUP_OPTIONS__, DeepPartial } from './types.js';
+import { __OPTS__, __STRICT_OPTS__, DeepPartial } from './types.js';
 import { expect } from './common.js';
 import { Replacer } from './replace.js';
 
@@ -35,13 +35,13 @@ export function recursion(exclude: Set<string>, unknownPath: string, result: str
   }
 }
 
-function normalize(options?: DeepPartial<__ROLLUP_OPTIONS__>): __STRICT_ROLLUP_OPTIONS__ {
+function normalize(options?: DeepPartial<__OPTS__>): __STRICT_OPTS__ {
   const {
     include: rawInclude = [],
     exclude: rawExclude = [],
     mergeInto = ['dist', 'index.d.ts'],
     replace = {},
-  } = Object(options) as __ROLLUP_OPTIONS__;
+  } = Object(options) as __OPTS__;
   const cwd = process.cwd();
   const join = (p: string | string[]) =>
     Array.isArray(p) ? pathJoin(cwd, ...p) : pathJoin(cwd, p);
@@ -93,13 +93,12 @@ function normalize(options?: DeepPartial<__ROLLUP_OPTIONS__>): __STRICT_ROLLUP_O
  *
  * __PKG_INFO__
  */
-export function dtsMerger(options?: DeepPartial<__ROLLUP_OPTIONS__>): Plugin {
+export function dtsMerger(options?: DeepPartial<__OPTS__>): Plugin {
   const cwd = process.cwd();
   const { include, exclude, mergeInto, replace } = normalize(options);
-
   const replacer = new Replacer(replace);
 
-  return {
+  const plugin: Plugin = {
     name: '__NAME__',
     writeBundle() {
       if (!existsSync(mergeInto)) {
@@ -122,4 +121,9 @@ export function dtsMerger(options?: DeepPartial<__ROLLUP_OPTIONS__>): Plugin {
       }
     },
   };
+
+  Object.defineProperty(plugin, '__KSKBTMG__', {
+    value: { include, exclude, mergeInto, replace },
+  });
+  return plugin as Plugin;
 }
