@@ -56,31 +56,52 @@ export interface ReplaceOptions {
    * - since this plugin works on declaration files, it is recommended to use `['', '']`
    * - default is `['\\b', '\\b(?!\\.)']` @see https://www.npmjs.com/package/@rollup/plugin-replace
    * @example
+   * ```typescript
    * // if delimiters: ['<@', '@>'], values:{ foo: 'bar' }
    * // Before
    * const a = '<@foo@>';
    * // After
    * const a = 'bar';
+   * ```
    */
   delimiters: [string, string];
 
   /**
    * Default is `false`, but it is recommended to set it to `true`.
    * @example
-   * // If preventAssignment: false, values:{ __NAME__: 'dts-merger' }
+   * ```typescript
    * // Before
-   * const __NAME__ = 'SomeName';
+   * const __NAME__ = 'a';
    * const ERR_NAME = '__NAME__Error';
-   * // After
-   * const DtsMerger = 'SomeName';
-   * const ERR_NAME = 'DtsMergerError';
    *
-   * // If preventAssignment: true
-   * // After
-   * const __NAME__ = 'SomeName';
-   * const ERR_NAME = 'DtsMergerError';
+   * // After: If preventAssignment: false, values:{ __NAME__: 'SomeName' }
+   * const SomeName = 'SomeName';
+   * const ERR_NAME = 'SomeNameError';
+   *
+   * // After: If preventAssignment: true
+   * const __NAME__ = 'a';
+   * const ERR_NAME = 'SomeNameError';
+   * ```
    */
   preventAssignment: boolean;
+
+  /**
+   * Default is `false`, but it is recommended to set it to `true`.
+   * - similar to `preventAssignment` but works for declarations
+   *   - simply, the logic of `=` used in `preventAssignment` is changed to `:`
+   * @example
+   * ```typescript
+   * // Before
+   * declare const __NAME__: string;
+   *
+   * // After: If preventDeclaration: false, values:{ __NAME__: 'SomeName' }
+   * declare const SomeName: string;
+   *
+   * // After: If preventDeclaration: true
+   * declare const __NAME__: string;
+   * ```
+   */
+  preventDeclaration: boolean;
 
   /**
    * A key-value object to replace expressions in the '.d.ts' files.

@@ -4,6 +4,7 @@ import { __ROLLUP_OPTIONS__, Any, DeepPartial, ReplaceOptions } from './types.js
 export class Replacer {
   private readonly delimiters: [string, string];
   private readonly preventAssignment: boolean;
+  private readonly preventDeclaration: boolean;
   private readonly values: Record<string, Any>;
 
   static normalize(replace: DeepPartial<ReplaceOptions>): ReplaceOptions {
@@ -12,6 +13,7 @@ export class Replacer {
     const {
       delimiters = ['\\b', '\\b(?!\\.)'],
       preventAssignment = false,
+      preventDeclaration = false,
       values = {},
     } = replace as ReplaceOptions;
 
@@ -28,18 +30,25 @@ export class Replacer {
       typeof preventAssignment === 'boolean',
       `options.replace.preventAssignment must be a boolean`
     );
+
+    expect(
+      typeof preventDeclaration === 'boolean',
+      `options.replace.preventAssignment must be a boolean`
+    );
+
     expect(
       typeof values === 'object' && values !== null,
       `options.replace.values must be an object`
     );
 
-    return { delimiters, preventAssignment, values };
+    return { delimiters, preventAssignment, preventDeclaration, values };
   }
 
   constructor(options: ReplaceOptions) {
-    this.preventAssignment = options.preventAssignment;
-    this.values = options.values;
     this.delimiters = options.delimiters;
+    this.preventAssignment = options.preventAssignment;
+    this.preventDeclaration = options.preventDeclaration;
+    this.values = options.values;
   }
 
   static stringify(key: string, value: Any): string {
@@ -66,8 +75,14 @@ export class Replacer {
 
   regex(key: string): RegExp {
     const r = `${this.delimiters[0]}${key}${this.delimiters[1]}`;
+    if (this.preventAssignment && this.preventDeclaration) {
+      return new RegExp(`${r}(?!\\s*[=:])`, 'g');
+    }
     if (this.preventAssignment) {
       return new RegExp(`${r}(?!\\s*=)`, 'g');
+    }
+    if (this.preventDeclaration) {
+      return new RegExp(`${r}(?!\\s*:)`, 'g');
     }
     return new RegExp(r, 'g');
   }
