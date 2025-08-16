@@ -5,4 +5,4 @@ interface __TYPE__ {
 declare const __TYPE__: __TYPE__;
 
 declare const __EXCLUDE__: string;
-declare const __EXCLUDE__ = 'sdf';
+declare const __EXCLUDE__ = '__EXCLUDE__';

@@ -1,4 +1,3 @@
-import { expect } from './common.js';
 import { __OPTS__, Any, DeepPartial, ReplaceOptions } from './types.js';
 
 function escape(str: string) {
@@ -36,42 +35,43 @@ export class Replacer {
   private readonly regex: RegExp;
 
   static generateRegExp(options: ReplaceOptions): RegExp {
-    const { delimiters, preventAssignment, values } = options;
+    const { delimiters: d, preventAssignment, values } = options;
     const keys = Object.keys(values).sort(longest).map(escape);
-    const [p, s] = delimiters;
 
     // negative lookbehind
     const b = preventAssignment ? '(?<!\\b(?:const|let|var)\\s*)' : '';
     // negative lookahead
     const a = preventAssignment ? '(?!\\s*[=:][^=:])' : '';
 
-    return new RegExp(`${b}${delimiters[0]}(${keys.join('|')})${delimiters[1]}${a}`, 'g');
+    return new RegExp(`${b}${d[0]}(${keys.join('|')})${d[1]}${a}`, 'g');
   }
 
-  static normalize(replace: DeepPartial<ReplaceOptions>): ReplaceOptions {
-    expect(typeof replace === 'object' && replace !== null, `options.replace must be an object`);
+  static normalize(replace: DeepPartial<ReplaceOptions>): ReplaceOptions | string {
+    if (typeof replace !== 'object' || replace === null) {
+      return `options.replace must be an object`;
+    }
+
     const {
       delimiters = ['\\b', '\\b(?!\\.)'],
       preventAssignment = false,
       values = {},
     } = replace as ReplaceOptions;
 
-    expect(Array.isArray(delimiters), `options.replace.delimiters must be an array of two strings`);
+    if (!Array.isArray(delimiters)) {
+      return `options.replace.delimiters must be an array of two strings`;
+    }
 
-    expect(
-      typeof delimiters[0] === 'string' && typeof delimiters[1] === 'string',
-      `options.replace.delimiters must contain two strings`
-    );
+    if (typeof delimiters[0] !== 'string' || typeof delimiters[1] !== 'string') {
+      return `options.replace.delimiters must contain two strings`;
+    }
 
-    expect(
-      typeof preventAssignment === 'boolean',
-      `options.replace.preventAssignment must be a boolean`
-    );
+    if (typeof preventAssignment !== 'boolean') {
+      return `options.replace.preventAssignment must be a boolean`;
+    }
 
-    expect(
-      typeof values === 'object' && values !== null,
-      `options.replace.values must be an object`
-    );
+    if (typeof values !== 'object' || values === null) {
+      return `options.values must be an object`;
+    }
 
     return { delimiters, preventAssignment, values };
   }

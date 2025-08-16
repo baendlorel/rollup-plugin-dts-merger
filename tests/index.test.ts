@@ -113,9 +113,9 @@ describe('dts-merger plugin', () => {
     }).run('__EXCLUDE__', 'excluded');
     // 只剩下 mock/src 目录下未被 exclude 的那个文件
     expect(result).toMatchObject({
-      beforeKey: 1,
+      beforeKey: 3,
       beforeValue: 0,
-      afterKey: 0,
+      afterKey: 2,
       afterValue: 1,
     });
   });

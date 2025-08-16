@@ -1,9 +1,8 @@
 import { join as pathJoin, relative } from 'node:path';
 import { readdirSync, readFileSync, existsSync, statSync, appendFileSync } from 'node:fs';
-import type { Plugin } from 'rollup';
+import type { Plugin, PluginContext } from 'rollup';
 
 import { __OPTS__, __STRICT_OPTS__, DeepPartial } from './types.js';
-import { expect } from './common.js';
 import { Replacer } from './replace.js';
 
 function isExistedDir(fullPath: string) {
@@ -35,23 +34,27 @@ export function recursion(exclude: Set<string>, unknownPath: string, result: str
   }
 }
 
-function normalize(options?: DeepPartial<__OPTS__>): __STRICT_OPTS__ {
+function normalize(options?: DeepPartial<__OPTS__>): __STRICT_OPTS__ | string {
   const {
     include: rawInclude = [],
     exclude: rawExclude = [],
     mergeInto = ['dist', 'index.d.ts'],
-    replace = {},
+    replace: rawReplace = {},
   } = Object(options) as __OPTS__;
+
   const cwd = process.cwd();
   const join = (p: string | string[]) =>
     Array.isArray(p) ? pathJoin(cwd, ...p) : pathJoin(cwd, p);
 
-  expect(Array.isArray(rawInclude), `options.include must be an array`);
-  expect(Array.isArray(rawExclude), `options.exclude must be an array`);
-  expect(
-    typeof mergeInto === 'string' || Array.isArray(mergeInto),
-    `options.mergeInto must be string/string[]`
-  );
+  if (!Array.isArray(rawInclude)) {
+    return `options.include must be an array`;
+  }
+  if (!Array.isArray(rawExclude)) {
+    return `options.exclude must be an array`;
+  }
+  if (typeof mergeInto !== 'string' && !Array.isArray(mergeInto)) {
+    return `options.mergeInto must be string/string[]`;
+  }
 
   const include = rawInclude.length
     ? new Set(rawInclude.map((item) => join(item)))
@@ -59,16 +62,20 @@ function normalize(options?: DeepPartial<__OPTS__>): __STRICT_OPTS__ {
   const exclude = new Set(rawExclude.map((item) => join(item)));
   const union = new Set([...include, ...exclude]);
 
-  expect(
-    union.size === include.size + exclude.size,
-    `options.include and options.exclude must not share any items`
-  );
+  if (union.size !== include.size + exclude.size) {
+    return `options.include and options.exclude must not share any items`;
+  }
+
+  const replace = Replacer.normalize(rawReplace);
+  if (typeof replace === 'string') {
+    return replace;
+  }
 
   return {
     include,
     exclude,
     mergeInto: join(mergeInto),
-    replace: Replacer.normalize(replace),
+    replace,
   };
 }
 
@@ -95,17 +102,29 @@ function normalize(options?: DeepPartial<__OPTS__>): __STRICT_OPTS__ {
  */
 export function dtsMerger(options?: DeepPartial<__OPTS__>): Plugin {
   const cwd = process.cwd();
-  const { include, exclude, mergeInto, replace } = normalize(options);
-  const replacer = new Replacer(replace);
+  const opts = normalize(options);
 
   const plugin: Plugin = {
     name: '__NAME__',
-    writeBundle() {
+    writeBundle(this: PluginContext) {
+      const ctx = this ?? {
+        warn: console.warn,
+        error: (msg: string) => {
+          throw new Error(msg);
+        },
+      };
+
+      if (typeof opts === 'string') {
+        ctx.error(opts);
+      }
+
+      const { include, exclude, mergeInto, replace } = opts as __STRICT_OPTS__;
+      const replacer = new Replacer(replace);
+
       if (!existsSync(mergeInto)) {
         const rel = relative(cwd, mergeInto);
         // & only warns but not quit
-        const warn = this?.warn ?? console.warn;
-        warn(`__NAME__ : '${rel}' does not exist, please check the order of plugins!`);
+        ctx.warn(`__NAME__ : '${rel}' does not exist, please check the order of plugins!`);
       }
 
       const dtsFiles: string[] = [];
@@ -123,7 +142,8 @@ export function dtsMerger(options?: DeepPartial<__OPTS__>): Plugin {
   };
 
   Object.defineProperty(plugin, '__KSKBTMG__', {
-    value: { include, exclude, mergeInto, replace },
+    value: opts,
   });
+
   return plugin as Plugin;
 }
