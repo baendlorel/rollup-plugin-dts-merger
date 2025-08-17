@@ -5,7 +5,12 @@ import type { Plugin, PluginContext, RollupError } from 'rollup';
 import { __OPTS__, __STRICT_OPTS__, DeepPartial } from './types.js';
 import { normalizeReplace, Replacer } from './replace.js';
 import { defineProperty, isArray, isObject, isString, mustBe } from './native.js';
-import { Defaults } from './defaults.js';
+import {
+  DEFAULT_EXCLUDE,
+  DEFAULT_INCLUDE,
+  DEFAULT_MERGEINTO,
+  DEFAULT_REPLACE,
+} from './defaults.js';
 
 export function recursion(
   exclude: Set<string>,
@@ -41,10 +46,10 @@ export function recursion(
 
 function normalize(options?: DeepPartial<__OPTS__>): __STRICT_OPTS__ | string {
   const {
-    include: rawInclude = Defaults.include,
-    exclude: rawExclude = Defaults.exclude,
-    mergeInto = Defaults.mergeInto,
-    replace: rawReplace = Defaults.replace,
+    include: rawInclude = DEFAULT_INCLUDE,
+    exclude: rawExclude = DEFAULT_EXCLUDE,
+    mergeInto = DEFAULT_MERGEINTO,
+    replace: rawReplace = DEFAULT_REPLACE,
   } = Object(options) as __OPTS__;
 
   const cwd = process.cwd();

@@ -1,16 +1,11 @@
 import { Any } from './types.js';
 
-export const Defaults = {
-  include: ['src'] as const,
-  exclude: [],
-  mergeInto: ['dist', 'index.d.ts'],
-  replace: {
-    delimiters: ['\\b', '\\b(?!\\.)'] as [string, string],
-    preventAssignment: false,
-    preventAssignmentRegex: {
-      loolahead: '(?!\\s*[=:][^=:])',
-      lookbehind: '(?<!\\b(?:const|let|var)\\s*)',
-    },
-    values: {} as Record<string, Any>,
-  },
-};
+export const DEFAULT_INCLUDE = ['src'];
+export const DEFAULT_EXCLUDE = [];
+export const DEFAULT_MERGEINTO = ['dist', 'index.d.ts'];
+export const DEFAULT_REPLACE = {} as Record<string, Any>;
+export const DEFAULT_REPLACE_DELIMITERS = ['\\b', '\\b(?!\\.)'] as [string, string];
+export const DEFAULT_REPLACE_PREVENTASSIGNMENT = false;
+export const DEFAULT_REPLACE_PREVENTASSIGNMENT_LOOKBEHIND = '(?<!\\b(?:const|let|var)\\s*)';
+export const DEFAULT_REPLACE_PREVENTASSIGNMENT_LOOLAHEAD = '(?!\\s*[=:][^=:])';
+export const DEFAULT_REPLACE_VALUES = {} as Record<string, Any>;

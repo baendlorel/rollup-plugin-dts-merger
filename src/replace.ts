@@ -1,4 +1,10 @@
-import { Defaults } from './defaults.js';
+import {
+  DEFAULT_REPLACE_DELIMITERS,
+  DEFAULT_REPLACE_PREVENTASSIGNMENT,
+  DEFAULT_REPLACE_PREVENTASSIGNMENT_LOOKBEHIND,
+  DEFAULT_REPLACE_PREVENTASSIGNMENT_LOOLAHEAD,
+  DEFAULT_REPLACE_VALUES,
+} from './defaults.js';
 import { entries, isArray, isObject, isString, keys, mustBe } from './native.js';
 import { __OPTS__, Any, DeepPartial, ReplaceOptions } from './types.js';
 
@@ -32,9 +38,9 @@ export function normalizeReplace(replace: DeepPartial<ReplaceOptions>): ReplaceO
   }
 
   const {
-    delimiters = Defaults.replace.delimiters,
-    preventAssignment = Defaults.replace.preventAssignment,
-    values = Defaults.replace.values,
+    delimiters = DEFAULT_REPLACE_DELIMITERS,
+    preventAssignment = DEFAULT_REPLACE_PREVENTASSIGNMENT,
+    values = DEFAULT_REPLACE_VALUES,
   } = replace as ReplaceOptions;
 
   if (!isArray(delimiters) || !isString(delimiters[0]) || !isString(delimiters[1])) {
@@ -74,9 +80,9 @@ export class Replacer {
     const k = keys(values).sort(longest).map(escape);
 
     // negative lookbehind
-    const b = preventAssignment ? Defaults.replace.preventAssignmentRegex.lookbehind : '';
+    const b = preventAssignment ? DEFAULT_REPLACE_PREVENTASSIGNMENT_LOOKBEHIND : '';
     // negative lookahead
-    const a = preventAssignment ? Defaults.replace.preventAssignmentRegex.loolahead : '';
+    const a = preventAssignment ? DEFAULT_REPLACE_PREVENTASSIGNMENT_LOOLAHEAD : '';
 
     return new RegExp(`${b}${d[0]}(${k.join('|')})${d[1]}${a}`, 'g');
   }
