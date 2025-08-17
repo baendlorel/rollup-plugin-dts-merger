@@ -4,7 +4,7 @@ import type { Plugin, PluginContext, RollupError } from 'rollup';
 
 import { __OPTS__, __STRICT_OPTS__, DeepPartial } from './types.js';
 import { normalizeReplace, Replacer } from './replace.js';
-import { defineProperty, isArray, isObject } from './native.js';
+import { defineProperty, isArray, isObject, isString, mustBe } from './native.js';
 
 export function recursion(
   exclude: Set<string>,
@@ -49,28 +49,23 @@ function normalize(options?: DeepPartial<__OPTS__>): __STRICT_OPTS__ | string {
   const cwd = process.cwd();
   const join = (p: string | string[]) => (isArray(p) ? pathJoin(cwd, ...p) : pathJoin(cwd, p));
 
-  if (!isArray(rawInclude)) {
-    return `include must be an array`;
+  if (!isArray(rawInclude) || !isArray(rawExclude)) {
+    return mustBe('include and exclude', 'array');
   }
-  if (!isArray(rawExclude)) {
-    return `exclude must be an array`;
-  }
-  if (typeof mergeInto !== 'string' && !isArray(mergeInto)) {
-    return `mergeInto must be string/string[]`;
+  if (!isString(mergeInto) && !isArray(mergeInto)) {
+    return mustBe('mergeInto', 'string/string[]');
   }
 
-  const include = rawInclude.length
-    ? new Set(rawInclude.map((item) => join(item)))
-    : new Set([join('src')]);
+  const include = new Set(rawInclude.length ? rawInclude.map((item) => join(item)) : [join('src')]);
   const exclude = new Set(rawExclude.map((item) => join(item)));
   const union = new Set([...include, ...exclude]);
 
   if (union.size !== include.size + exclude.size) {
-    return `include and exclude must not share any items`;
+    return mustBe('include and exclude', 'disjoint');
   }
 
   const replace = normalizeReplace(rawReplace);
-  if (typeof replace === 'string') {
+  if (isString(replace)) {
     return replace;
   }
 
@@ -86,10 +81,7 @@ function getContext(ctx: PluginContext) {
   const fallback = {
     warn: console.warn,
     error: (e: string | RollupError) => {
-      if (typeof e === 'string') {
-        throw new Error(e);
-      }
-      throw e;
+      throw isString(e) ? new Error(e) : e;
     },
   };
 
@@ -97,10 +89,7 @@ function getContext(ctx: PluginContext) {
     return fallback;
   }
 
-  return {
-    warn: typeof ctx.warn === 'function' ? ctx.warn : fallback.warn,
-    error: typeof ctx.error === 'function' ? ctx.error : fallback.error,
-  };
+  return typeof ctx.warn === 'function' ? ctx : fallback;
 }
 
 /**
@@ -133,7 +122,7 @@ export function dtsMerger(options?: DeepPartial<__OPTS__>): Plugin {
     writeBundle(this: PluginContext) {
       const ctx = getContext(this);
 
-      if (typeof opts === 'string') {
+      if (isString(opts)) {
         ctx.error(opts);
       }
 
@@ -156,7 +145,7 @@ export function dtsMerger(options?: DeepPartial<__OPTS__>): Plugin {
       for (let i = 0; i < list.length; i++) {
         const relativePath = relative(cwd, list[i]);
         const content = readFileSync(list[i], 'utf8');
-        const replaced = replacer.run(content);
+        const replaced = replacer.exec(content);
         const s = `\n// \u0023 from: ${relativePath}\n`.concat(replaced);
         appendFileSync(mergeInto, s, 'utf8');
       }

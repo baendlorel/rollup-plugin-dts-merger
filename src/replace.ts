@@ -1,13 +1,9 @@
-import { entries, isArray, isObject, keys } from './native.js';
+import { entries, isArray, isObject, isString, keys, mustBe } from './native.js';
 import { __OPTS__, Any, DeepPartial, ReplaceOptions } from './types.js';
 
-function escape(str: string) {
-  return str.replace(/[-[\]/{}()*+?.\\^$|]/g, '\\$&');
-}
+const escape = (str: string) => str.replace(/[-[\]/{}()*+?.\\^$|]/g, '\\$&');
 
-function longest(a: string, b: string) {
-  return b.length - a.length;
-}
+const longest = (a: string, b: string) => b.length - a.length;
 
 export function stringify(key: string, value: Any): string {
   if (value === null) {
@@ -31,7 +27,7 @@ export function stringify(key: string, value: Any): string {
 }
 export function normalizeReplace(replace: DeepPartial<ReplaceOptions>): ReplaceOptions | string {
   if (!isObject(replace)) {
-    return `replace must be an object`;
+    return mustBe('replace', 'object');
   }
 
   const {
@@ -40,20 +36,16 @@ export function normalizeReplace(replace: DeepPartial<ReplaceOptions>): ReplaceO
     values = {},
   } = replace as ReplaceOptions;
 
-  if (!isArray(delimiters)) {
-    return `delimiters must be an array of two strings`;
-  }
-
-  if (typeof delimiters[0] !== 'string' || typeof delimiters[1] !== 'string') {
-    return `delimiters must contain two strings`;
+  if (!isArray(delimiters) || !isString(delimiters[0]) || !isString(delimiters[1])) {
+    return mustBe('delimiters', '[string, string]');
   }
 
   if (typeof preventAssignment !== 'boolean') {
-    return `preventAssignment must be a boolean`;
+    return mustBe('preventAssignment', 'boolean');
   }
 
   if (!isObject(values)) {
-    return `values must be an object`;
+    return mustBe('values', 'object');
   }
 
   return { delimiters, preventAssignment, values };
@@ -88,7 +80,7 @@ export class Replacer {
     return new RegExp(`${b}${d[0]}(${k.join('|')})${d[1]}${a}`, 'g');
   }
 
-  run(content: string) {
+  exec(content: string) {
     return content.replace(this.regex, (_, $1) => this.record[$1]);
   }
 }
