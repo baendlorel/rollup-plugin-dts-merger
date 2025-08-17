@@ -77,7 +77,7 @@ export default [
         mangle: {
           properties: {
             // regex: /^_/, // only mangle properties starting with '_'
-            // regex: /^.+$/,
+            regex: /^.+$/,
           },
           reserved: [],
         },

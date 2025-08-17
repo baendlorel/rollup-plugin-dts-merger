@@ -4,43 +4,37 @@ import type { Plugin, PluginContext, RollupError } from 'rollup';
 
 import { __OPTS__, __STRICT_OPTS__, DeepPartial } from './types.js';
 import { normalizeReplace, Replacer } from './replace.js';
+import { defineProperty, isArray, isObject } from './native.js';
 
-function isExistedDir(fullPath: string) {
-  try {
-    const stat = statSync(fullPath);
-    return stat.isDirectory();
-  } catch {
-    return false;
-  }
-}
-
-function isExistedDts(fullPath: string) {
-  try {
-    const stat = statSync(fullPath);
-    return stat.isFile() && fullPath.endsWith('.d.ts');
-  } catch {
-    return false;
-  }
-}
-
-export function recursion(exclude: Set<string>, unknownPath: string, result: string[]) {
+export function recursion(
+  exclude: Set<string>,
+  unknownPath: string,
+  list: string[],
+  nonexist: string[]
+) {
   if (exclude.has(unknownPath)) {
     return;
   }
 
-  if (isExistedDts(unknownPath)) {
-    result.push(unknownPath);
+  if (!existsSync(unknownPath)) {
+    nonexist.push(unknownPath);
     return;
   }
 
-  if (!isExistedDir(unknownPath)) {
+  const s = statSync(unknownPath);
+  if (s.isFile() && unknownPath.endsWith('.d.ts')) {
+    list.push(unknownPath);
+    return;
+  }
+
+  if (!s.isDirectory()) {
     return;
   }
 
   const items = readdirSync(unknownPath);
   for (let i = 0; i < items.length; i++) {
     const fullPath = pathJoin(unknownPath, items[i]);
-    recursion(exclude, fullPath, result);
+    recursion(exclude, fullPath, list, nonexist);
   }
 }
 
@@ -53,17 +47,16 @@ function normalize(options?: DeepPartial<__OPTS__>): __STRICT_OPTS__ | string {
   } = Object(options) as __OPTS__;
 
   const cwd = process.cwd();
-  const join = (p: string | string[]) =>
-    Array.isArray(p) ? pathJoin(cwd, ...p) : pathJoin(cwd, p);
+  const join = (p: string | string[]) => (isArray(p) ? pathJoin(cwd, ...p) : pathJoin(cwd, p));
 
-  if (!Array.isArray(rawInclude)) {
-    return `options.include must be an array`;
+  if (!isArray(rawInclude)) {
+    return `include must be an array`;
   }
-  if (!Array.isArray(rawExclude)) {
-    return `options.exclude must be an array`;
+  if (!isArray(rawExclude)) {
+    return `exclude must be an array`;
   }
-  if (typeof mergeInto !== 'string' && !Array.isArray(mergeInto)) {
-    return `options.mergeInto must be string/string[]`;
+  if (typeof mergeInto !== 'string' && !isArray(mergeInto)) {
+    return `mergeInto must be string/string[]`;
   }
 
   const include = rawInclude.length
@@ -73,7 +66,7 @@ function normalize(options?: DeepPartial<__OPTS__>): __STRICT_OPTS__ | string {
   const union = new Set([...include, ...exclude]);
 
   if (union.size !== include.size + exclude.size) {
-    return `options.include and options.exclude must not share any items`;
+    return `include and exclude must not share any items`;
   }
 
   const replace = normalizeReplace(rawReplace);
@@ -100,7 +93,7 @@ function getContext(ctx: PluginContext) {
     },
   };
 
-  if (typeof ctx !== 'object' || ctx === null) {
+  if (!isObject(ctx)) {
     return fallback;
   }
 
@@ -150,24 +143,27 @@ export function dtsMerger(options?: DeepPartial<__OPTS__>): Plugin {
       if (!existsSync(mergeInto)) {
         const rel = relative(cwd, mergeInto);
         // & only warns but not quit
-        ctx.warn(`__NAME__ : '${rel}' does not exist, please check the order of plugins!`);
+        ctx.warn(`__NAME__: '${rel}' does not exist, please check the order of plugins!`);
       }
 
-      const dtsFiles: string[] = [];
-      include.forEach((p) => recursion(exclude, p, dtsFiles));
+      const list: string[] = [];
+      const nonexist: string[] = [];
+      include.forEach((p) => recursion(exclude, p, list, nonexist));
+      if (nonexist.length > 0) {
+        ctx.warn(`__NAME__: The following files do not exist:\n${nonexist.join('\n')}`);
+      }
 
-      for (let i = 0; i < dtsFiles.length; i++) {
-        const file = dtsFiles[i];
-        const relativePath = relative(cwd, file);
-        const content = readFileSync(file, 'utf8');
-        const replaced = replacer.exec(content);
+      for (let i = 0; i < list.length; i++) {
+        const relativePath = relative(cwd, list[i]);
+        const content = readFileSync(list[i], 'utf8');
+        const replaced = replacer.run(content);
         const s = `\n// \u0023 from: ${relativePath}\n`.concat(replaced);
         appendFileSync(mergeInto, s, 'utf8');
       }
     },
   };
 
-  Object.defineProperty(plugin, '__KSKB_TUMUGI__', {
+  defineProperty(plugin, '__KSKB_TUMUGI__', {
     value: opts,
   });
 
