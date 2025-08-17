@@ -35,7 +35,7 @@ console.log('Building', __NAME__, pkg.version);
 export const replaceOpts = {
   preventAssignment: true,
   values: {
-    __NAME__: 'DtsMerger',
+    __NAME__,
     __PKG_INFO__,
     __OPTS__: `Rollup${__NAME__}Options`,
     __STRICT_OPTS__: `Rollup${__NAME__}StrictOptions`,

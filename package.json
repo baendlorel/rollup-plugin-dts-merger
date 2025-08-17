@@ -19,7 +19,8 @@
     "test": "clear & vitest",
     "lint": "oxlint .",
     "cover": "clear & vitest --coverage",
-    "build": "rimraf dist && node ./plugins/rename.js && rollup -c && node ./plugins/rename.js"
+    "rebuild": "rimraf dist && rollup -c",
+    "build": "node ./scripts/rollup.mjs"
   },
   "keywords": [
     "rollup",
