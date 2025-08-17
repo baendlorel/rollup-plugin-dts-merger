@@ -11,8 +11,8 @@ function formatDateFull(dt = new Date()) {
   const ms = String(dt.getMilliseconds()).padStart(3, '0');
   return `${y}.${m}.${d} ${hh}:${mm}:${ss}.${ms}`;
 }
-console.log(process.env.REAL_NAME);
-const __NAME__ = (process.env.REAL_NAME ?? '')
+
+const __NAME__ = (process.env.KSKB_TSUMUGI_REAL_NAME ?? '')
   .replace('rollup-plugin-', '')
   .replace(/(^|-)(\w)/g, (_, __, c) => c.toUpperCase());
 
@@ -24,8 +24,6 @@ const __PKG_INFO__ = `## About
  * @link ${pkg.repository.url}
  * @description ${pkg.description.replace(/\n/g, '\n * \n * ')}
  * @copyright Copyright (c) ${new Date().getFullYear()} ${pkg.author.name}. All rights reserved.`;
-
-console.log('Building', __NAME__, pkg.version);
 
 /**
  * @type {import('@rollup/plugin-replace').RollupReplaceOptions}

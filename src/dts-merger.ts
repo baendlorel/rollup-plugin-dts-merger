@@ -157,9 +157,11 @@ export function dtsMerger(options?: DeepPartial<__OPTS__>): Plugin {
       }
 
       // first, replace the content of `mergeInto` target
-      const content = readFileSync(mergeInto, 'utf8');
-      const replaced = replacer._exec(content);
-      writeFileSync(mergeInto, replaced, 'utf8');
+      if (existsSync(mergeInto) && statSync(mergeInto).isFile()) {
+        const content = readFileSync(mergeInto, 'utf8');
+        const replaced = replacer._exec(content);
+        writeFileSync(mergeInto, replaced, 'utf8');
+      }
 
       // replace and append
       for (let i = 0; i < list.length; i++) {

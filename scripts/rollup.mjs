@@ -76,18 +76,19 @@ class Renamer {
 async function run() {
   const renamer = new Renamer(join(import.meta.dirname, '..', 'package.json'));
 
+  process.env.KSKB_TSUMUGI_REAL_NAME = renamer.realName;
+
   renamer.useTempName();
 
   await execute(['rimraf', 'dist']);
 
   // ! Must read configs here, or nodejs will not
   // ! be able to find the installed package of this project
-  const rollupConfig = await import('../rollup.config.mjs');
+  const rollupConfig = (await import('../rollup.config.mjs')).default;
 
-  await execute(['rollup', '-c'], { env: { REAL_NAME: renamer.realName } });
+  await execute(['rollup', '-c'], { env: { ...process.env } });
 
   renamer.restoreRealName();
-
   const files = getOutputFiles(rollupConfig);
   printSize(files);
 }
