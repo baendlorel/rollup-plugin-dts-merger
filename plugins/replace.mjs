@@ -1,6 +1,5 @@
 // @ts-check
 import pkg from '../package.json' with { type: 'json' };
-import renamer from './renamer.mjs';
 
 function formatDateFull(dt = new Date()) {
   const y = dt.getFullYear();
@@ -12,9 +11,8 @@ function formatDateFull(dt = new Date()) {
   const ms = String(dt.getMilliseconds()).padStart(3, '0');
   return `${y}.${m}.${d} ${hh}:${mm}:${ss}.${ms}`;
 }
-
-const __NAME__ = renamer
-  .readRealName()
+console.log(process.env.REAL_NAME);
+const __NAME__ = (process.env.REAL_NAME ?? '')
   .replace('rollup-plugin-', '')
   .replace(/(^|-)(\w)/g, (_, __, c) => c.toUpperCase());
 

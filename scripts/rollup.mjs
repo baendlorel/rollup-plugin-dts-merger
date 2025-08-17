@@ -1,13 +1,11 @@
 // @ts-check
-import { statSync } from 'node:fs';
-import renamer from '../plugins/renamer.mjs';
-import rollupConfig from '../rollup.config.mjs';
-import { execute } from './execute.mjs';
+import { readFileSync, statSync, writeFileSync } from 'node:fs';
 import { join } from 'node:path';
+import { execute } from './execute.mjs';
 
 const toArr = (o) => (Array.isArray(o) ? o : typeof o === 'object' && o !== null ? [] : [o]);
 
-function getOutputFiles() {
+function getOutputFiles(rollupConfig) {
   const output = [];
   toArr(rollupConfig).forEach((c) => output.push(...toArr(c.output)));
   return output.map((o) => o.file);
@@ -28,7 +26,7 @@ function printSize(files) {
       total += size;
       info.push({ file, size });
     } catch (e) {
-      this.warn(`${file}: Not found or no permission to read`);
+      console.warn(`${file}: Not found or no permission to read`);
     }
   });
 
@@ -37,12 +35,60 @@ function printSize(files) {
   console.log(info.map(mapper(maxLen)).join('\n'));
 }
 
+/**
+ * Because Node.js finds the package from current project first,
+ * we need to rename the package temporarily to make it search node_modules
+ */
+class Renamer {
+  origin = '';
+
+  constructor(packageJsonPath) {
+    this.packageJsonPath = packageJsonPath;
+    this.origin = readFileSync(packageJsonPath, 'utf-8');
+  }
+
+  get realName() {
+    return JSON.parse(this.origin).name;
+  }
+
+  read() {
+    return readFileSync(this.packageJsonPath, 'utf-8');
+  }
+
+  write(content) {
+    return writeFileSync(this.packageJsonPath, content, 'utf-8');
+  }
+
+  useTempName() {
+    this.origin = this.read();
+    const j = JSON.parse(this.origin);
+    j.name = 'kasukabe-tsumugi-temporary-name';
+    console.log('Using temporary name:', j.name);
+    this.write(JSON.stringify(j));
+  }
+
+  restoreRealName() {
+    console.log('Restoring real name:', this.realName);
+    this.write(this.origin);
+  }
+}
+
 async function run() {
-  renamer.changeName();
-  await execute('rimraf', 'dist');
-  await execute('rollup', '-c');
-  renamer.changeName();
-  const files = getOutputFiles();
+  const renamer = new Renamer(join(import.meta.dirname, '..', 'package.json'));
+
+  renamer.useTempName();
+
+  await execute(['rimraf', 'dist']);
+
+  // ! Must read configs here, or nodejs will not
+  // ! be able to find the installed package of this project
+  const rollupConfig = await import('../rollup.config.mjs');
+
+  await execute(['rollup', '-c'], { env: { REAL_NAME: renamer.realName } });
+
+  renamer.restoreRealName();
+
+  const files = getOutputFiles(rollupConfig);
   printSize(files);
 }
 
