@@ -1,15 +1,24 @@
 import { spawn } from 'node:child_process';
 import renamer from '../plugins/renamer.mjs';
-renamer.changeName();
 
 function runRollup() {
   let resolve;
   const promise = new Promise((res) => (resolve = res));
 
-  spawn('pnpm', ['rebuild'], {
+  spawn('rimraf', ['dist'], {
     stdio: 'inherit',
     shell: true,
-  }).on('close', resolve);
+  }).on('close', () => {
+    console.log('rimraf completed');
+
+    spawn('rollup', ['-c'], {
+      stdio: 'inherit',
+      shell: true,
+    }).on('close', () => {
+      console.log('rollup completed');
+      resolve();
+    });
+  });
 
   return promise;
 }
