@@ -1,19 +1,10 @@
-export type Any =
-  | string
-  | number
-  | boolean
-  | null
-  | undefined
-  | object
-  | symbol
-  | bigint
-  | Function;
+type Any = string | number | boolean | null | undefined | object | symbol | bigint | Function;
 
-export type DeepPartial<T> = {
+type DeepPartial<T> = {
   [P in keyof T]?: T[P] extends object ? DeepPartial<T[P]> : T[P];
 };
 
-export interface __OPTS__ {
+interface __OPTS__ {
   /**
    * Relative paths, will join the given paths with `process.pwd()`
    * - if item is `string[]`, will use `path.join(<cwd>,...item)`
@@ -54,14 +45,14 @@ export interface __OPTS__ {
   replace: ReplaceOptions;
 }
 
-export interface __STRICT_OPTS__ {
+interface __STRICT_OPTS__ {
   include: Set<string>;
   exclude: Set<string>;
   mergeInto: string;
   replace: ReplaceOptions;
 }
 
-export interface ReplaceOptions {
+interface ReplaceOptions {
   /**
    * To replace every occurrence of `<@foo@>` instead of every occurrence of `foo`, supply delimiters
    * - `[string, string]` is actually `[prefix, suffix]`

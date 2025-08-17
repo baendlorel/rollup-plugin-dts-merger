@@ -2,7 +2,6 @@ import { join as pathJoin, relative } from 'node:path';
 import { readdirSync, readFileSync, existsSync, statSync, appendFileSync } from 'node:fs';
 import type { Plugin, PluginContext, RollupError } from 'rollup';
 
-import { __OPTS__, __STRICT_OPTS__, DeepPartial } from './types.js';
 import { normalizeReplace, Replacer } from './replace.js';
 import { defineProperty, isArray, isObject, isString, mustBe } from './native.js';
 import {
@@ -138,7 +137,7 @@ export function dtsMerger(options?: DeepPartial<__OPTS__>): Plugin {
       if (!existsSync(mergeInto)) {
         const rel = relative(cwd, mergeInto);
         // & only warns but not quit
-        ctx.warn(`__NAME__: '${rel}' does not exist, please check the order of plugins!`);
+        ctx.warn(`__NAME__: '__OPTS__${rel}' does not exist, please check the order of plugins!`);
       }
 
       const list: string[] = [];

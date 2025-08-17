@@ -6,7 +6,6 @@ import {
   DEFAULT_REPLACE_VALUES,
 } from './defaults.js';
 import { entries, isArray, isObject, isString, keys, mustBe } from './native.js';
-import { __OPTS__, Any, DeepPartial, ReplaceOptions } from './types.js';
 
 const escape = (str: string) => str.replace(/[-[\]/{}()*+?.\\^$|]/g, '\\$&');
 

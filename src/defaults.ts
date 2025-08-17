@@ -1,5 +1,3 @@
-import { Any } from './types.js';
-
 export const DEFAULT_INCLUDE = ['src'];
 export const DEFAULT_EXCLUDE = [];
 export const DEFAULT_MERGEINTO = ['dist', 'index.d.ts'];

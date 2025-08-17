@@ -1,11 +1,12 @@
-import { readFileSync } from 'fs';
-import { join } from 'path';
+// @ts-check
+import { readFileSync, writeFileSync } from 'node:fs';
+import { join } from 'node:path';
 
 /**
  * Because Node.js finds the package from current project first,
  * we need to rename the package temporarily to make it search node_modules
  */
-export function rename() {
+function rename() {
   const NAME1 = '"name": "rollup-plugin-dts-merger"';
   const NAME2 = '"name": "temporary-plugin-name"';
   const packageJsonPath = join(process.cwd(), 'package.json');
@@ -19,3 +20,4 @@ export function rename() {
     writeFileSync(packageJsonPath, updatedContent, 'utf-8');
   }
 }
+rename();

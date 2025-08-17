@@ -12,9 +12,10 @@ function formatDateFull(dt = new Date()) {
   return `${y}.${m}.${d} ${hh}:${mm}:${ss}.${ms}`;
 }
 
-const __NAME__ = pkg.name
-  .replace('rollup-plugin-', '')
-  .replace(/(^|-)(\w)/g, (_, __, c) => c.toUpperCase());
+const __NAME__ = 'DtsMerger';
+// pkg.name
+// .replace('rollup-plugin-', '')
+// .replace(/(^|-)(\w)/g, (_, __, c) => c.toUpperCase());
 
 const __PKG_INFO__ = `## About
  * @package ${__NAME__}
@@ -31,7 +32,7 @@ const __PKG_INFO__ = `## About
 export const replaceOpts = {
   preventAssignment: true,
   values: {
-    __NAME__,
+    __NAME__: 'DtsMerger',
     __PKG_INFO__,
     __OPTS__: `Rollup${__NAME__}Options`,
     __STRICT_OPTS__: `Rollup${__NAME__}StrictOptions`,
