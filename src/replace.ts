@@ -58,15 +58,15 @@ export function normalizeReplace(replace: DeepPartial<ReplaceOptions>): ReplaceO
 }
 
 export class Replacer {
-  private readonly record: Record<string, string>;
-  private readonly regex: RegExp;
+  private readonly _record: Record<string, string>;
+  private readonly _regex: RegExp;
 
   constructor(options: ReplaceOptions) {
-    this.record = this.generateMap(options.values);
-    this.regex = this.generateRegExp(options);
+    this._record = this._generateMap(options.values);
+    this._regex = this._generateRegExp(options);
   }
 
-  generateMap(values: Record<string, Any>): Record<string, string> {
+  _generateMap(values: Record<string, Any>): Record<string, string> {
     const map: Record<string, string> = {};
     for (const [key, value] of entries(values)) {
       map[key] = stringify(key, value);
@@ -74,7 +74,7 @@ export class Replacer {
     return map;
   }
 
-  generateRegExp(options: ReplaceOptions): RegExp {
+  _generateRegExp(options: ReplaceOptions): RegExp {
     const { delimiters: d, preventAssignment, values } = options;
     const k = keys(values).sort(longest).map(escape);
 
@@ -86,7 +86,7 @@ export class Replacer {
     return new RegExp(`${b}${d[0]}(${k.join('|')})${d[1]}${a}`, 'g');
   }
 
-  exec(content: string) {
-    return content.replace(this.regex, (_, $1) => this.record[$1]);
+  _exec(content: string) {
+    return content.replace(this._regex, (_, $1) => this._record[$1]);
   }
 }

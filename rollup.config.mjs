@@ -82,10 +82,8 @@ export default [
         },
         mangle: {
           properties: {
-            // regex: /^_/, // only mangle properties starting with '_'
-            regex: /^.+$/,
+            regex: /^_/, // only mangle properties starting with '_'
           },
-          reserved: ['name', 'writeBundle'],
         },
       }),
     ],
@@ -99,8 +97,7 @@ export default [
       alias(aliasOpts),
       replace(replaceOpts),
       dts({ tsconfig }),
-      void dtsMerger({ mergeInto: ['dist', 'ddd.d.ts'], replace: replaceOpts }),
-    ].filter((p) => p !== undefined),
+      dtsMerger({ mergeInto: ['dist', 'ddd.d.ts'], replace: replaceOpts }),
+    ],
   },
 ];
-console.log('dtsMerger', dtsMerger());

@@ -150,7 +150,7 @@ export function dtsMerger(options?: DeepPartial<__OPTS__>): Plugin {
       for (let i = 0; i < list.length; i++) {
         const relativePath = relative(cwd, list[i]);
         const content = readFileSync(list[i], 'utf8');
-        const replaced = replacer.exec(content);
+        const replaced = replacer._exec(content);
         const s = `\n// \u0023 from: ${relativePath}\n`.concat(replaced);
         appendFileSync(mergeInto, s, 'utf8');
       }
