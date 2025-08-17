@@ -4,7 +4,6 @@ import type { Plugin } from 'rollup';
 
 import { dtsMerger, recursion } from '../src/dts-merger.js';
 import { stringify } from '../src/replace.js';
-import { __OPTS__, __STRICT_OPTS__, DeepPartial } from '../src/types.js';
 
 export const DIST = ['tests', 'mock', 'dist'];
 export const MERGE_INTO = [...DIST, 'index.d.ts'];
@@ -57,7 +56,7 @@ export class PluginRunner {
     const before = (() => {
       const srcDir = join(...this.opts.include);
       const files: string[] = [];
-      recursion(this.opts.exclude, srcDir, files);
+      recursion(this.opts.exclude, srcDir, files, []);
       const result: string[] = [];
 
       for (let i = 0; i < files.length; i++) {

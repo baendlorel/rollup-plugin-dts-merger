@@ -1,1 +1,3 @@
-export { dtsMerger } from './dts-merger.js';
+import { dtsMerger } from './dts-merger.js';
+
+export default dtsMerger;

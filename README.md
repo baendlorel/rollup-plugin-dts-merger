@@ -40,7 +40,9 @@ export default {
   plugins: [
     dtsMerger({
       // paths can be string or string[]
-      include: ['src/core', ['src', 'exports']], // -> path.join(process.cwd(),item)
+      // -> path.join(process.cwd(), 'item')
+      // -> path.join(process.cwd(), ...['src', 'exports'])
+      include: ['item', ['src', 'exports']],
       exclude: ['src/exclude-this.d.ts'], // also joined with cwd
       mergeInto: ['dist', 'index.d.ts'], // also joined with cwd
       replace: {
@@ -76,15 +78,15 @@ export default {
 #### Example ReplaceOptions
 
 ```js
-replace: {
+const replaceOpts = {
   delimiters: ['<@', '@>'],
   preventAssignment: true,
   values: {
     __NAME__: 'MyName',
-    // can be a function, the plugin will path 'key' to it
-    __TYPE__: key => key.toLowerCase(),
+    // can be a function, DtsMerger will pass 'key' to it
+    __TYPE__: (key) => key.toLowerCase(),
   },
-}
+};
 ```
 
 ## Examples

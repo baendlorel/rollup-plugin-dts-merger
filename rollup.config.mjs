@@ -10,7 +10,7 @@ import alias from '@rollup/plugin-alias';
 import terser from '@rollup/plugin-terser';
 import babel from '@rollup/plugin-babel';
 import replace from '@rollup/plugin-replace';
-import { dtsMerger } from 'rollup-plugin-dts-merger';
+import dtsMerger from 'rollup-plugin-dts-merger';
 
 // custom plugins
 import { replaceOpts } from './plugins/replace.mjs';
@@ -97,7 +97,7 @@ export default [
       alias(aliasOpts),
       replace(replaceOpts),
       dts({ tsconfig }),
-      dtsMerger({ mergeInto: ['dist', 'ddd.d.ts'], replace: replaceOpts }),
+      dtsMerger({ replace: replaceOpts }),
     ],
   },
 ];

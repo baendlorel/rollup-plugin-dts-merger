@@ -1,5 +1,12 @@
 import { join as pathJoin, relative } from 'node:path';
-import { readdirSync, readFileSync, existsSync, statSync, appendFileSync } from 'node:fs';
+import {
+  readdirSync,
+  readFileSync,
+  existsSync,
+  statSync,
+  appendFileSync,
+  writeFileSync,
+} from 'node:fs';
 import type { Plugin, PluginContext, RollupError } from 'rollup';
 
 import { normalizeReplace, Replacer } from './replace.js';
@@ -101,7 +108,10 @@ function getContext(ctx: PluginContext) {
  * ## Intro
  * Find all `.d.ts` files in directories(default: 'src') as your provided. Then append their content to the target declaration file, default (default: 'dist/index.d.ts')
  *
- * __NAME__ has a built in simple replacer which looks like '@rollup/plugin-replace', shares some same options.
+ * We have a built in simple replacer which looks like '@rollup/plugin-replace', shares some same options.
+ *
+ * @params options __OPTS__
+ * @returns Plugin
  *
  * ## Usage
  * Put it in plugins array in rollup.config.js
@@ -113,8 +123,7 @@ function getContext(ctx: PluginContext) {
  *   plugins: [dts({ tsconfig }), dtsMerger()],
  * }
  * ```
- * You can use options(__ROLLUP_OPTIONS__) to customize the behavior
- *
+ * You can use options(__OPTS__) to customize the behavior
  *
  * __PKG_INFO__
  */
@@ -147,6 +156,12 @@ export function dtsMerger(options?: DeepPartial<__OPTS__>): Plugin {
         ctx.warn(`__NAME__: The following files do not exist:\n${nonexist.join('\n')}`);
       }
 
+      // first, replace the content of `mergeInto` target
+      const content = readFileSync(mergeInto, 'utf8');
+      const replaced = replacer._exec(content);
+      writeFileSync(mergeInto, replaced, 'utf8');
+
+      // replace and append
       for (let i = 0; i < list.length; i++) {
         const relativePath = relative(cwd, list[i]);
         const content = readFileSync(list[i], 'utf8');

@@ -26,6 +26,8 @@ const __PKG_INFO__ = `## About
  * @description ${pkg.description.replace(/\n/g, '\n * \n * ')}
  * @copyright Copyright (c) ${new Date().getFullYear()} ${pkg.author.name}. All rights reserved.`;
 
+console.log('Building version:', pkg.version);
+
 /**
  * @type {import('@rollup/plugin-replace').RollupReplaceOptions}
  */
