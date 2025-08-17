@@ -10,11 +10,11 @@ import alias from '@rollup/plugin-alias';
 import terser from '@rollup/plugin-terser';
 import babel from '@rollup/plugin-babel';
 import replace from '@rollup/plugin-replace';
-// import { dtsMerger } from 'rollup-plugin-dts-merger';
+import dtsMerger from 'rollup-plugin-dts-merger';
 
 // custom plugins
 import { replaceOpts } from './plugins/replace.mjs';
-import { dtsMerger } from './plugins/dts-merger.mjs';
+// import { dtsMerger } from './plugins/dts-merger.mjs';
 
 // # common options
 
@@ -43,6 +43,11 @@ export default [
       {
         file: 'dist/index.mjs',
         format: 'esm',
+        sourcemap: false,
+      },
+      {
+        file: 'dist/index.cjs',
+        format: 'commonjs',
         sourcemap: false,
       },
     ],
@@ -91,6 +96,11 @@ export default [
   {
     input: 'src/index.ts',
     output: [{ file: 'dist/index.d.ts', format: 'es' }],
-    plugins: [alias(aliasOpts), replace(replaceOpts), dts({ tsconfig }), dtsMerger()],
+    plugins: [
+      alias(aliasOpts),
+      replace(replaceOpts),
+      dts({ tsconfig }),
+      dtsMerger({ replace: replaceOpts }),
+    ],
   },
 ];
