@@ -14,6 +14,7 @@ import dtsMerger from 'rollup-plugin-dts-merger';
 
 // custom plugins
 import { replaceOpts } from './plugins/replace.mjs';
+import { showBundleSize } from './plugins/bundle-size.mjs';
 
 // # common options
 
@@ -98,6 +99,7 @@ export default [
       replace(replaceOpts),
       dts({ tsconfig }),
       dtsMerger({ replace: replaceOpts }),
+      showBundleSize(['dist']),
     ],
   },
 ];
