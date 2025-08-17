@@ -8,7 +8,7 @@ export function execute(args, opts = {}) {
       stdio: 'inherit',
       shell: true,
     }).on('close', () => {
-      console.log(`${args[0]} completed`);
+      console.log(`\n${args.join(' ')} completed\n`);
       resolve(null);
     });
   });

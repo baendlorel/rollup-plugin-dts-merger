@@ -41,10 +41,12 @@ function printSize(files) {
  */
 class Renamer {
   origin = '';
+  packageJson;
 
   constructor(packageJsonPath) {
     this.packageJsonPath = packageJsonPath;
     this.origin = readFileSync(packageJsonPath, 'utf-8');
+    this.packageJson = JSON.parse(this.origin);
   }
 
   get realName() {
@@ -63,12 +65,10 @@ class Renamer {
     this.origin = this.read();
     const j = JSON.parse(this.origin);
     j.name = 'kasukabe-tsumugi-temporary-name';
-    console.log('Using temporary name:', j.name);
     this.write(JSON.stringify(j));
   }
 
   restoreRealName() {
-    console.log('Restoring real name:', this.realName);
     this.write(this.origin);
   }
 }
@@ -81,6 +81,9 @@ async function run() {
   renamer.useTempName();
 
   await execute(['rimraf', 'dist']);
+
+  const { name, version, projectType } = renamer.packageJson;
+  console.log(`Building`, `[${projectType}]`, name, version);
 
   // ! Must read configs here, or nodejs will not
   // ! be able to find the installed package of this project
