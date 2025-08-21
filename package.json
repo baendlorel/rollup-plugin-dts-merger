@@ -1,7 +1,8 @@
 {
   "name": "rollup-plugin-dts-merger",
-  "version": "1.2.2",
-  "description": "A Rollup plugin for merging TypeScript declaration files",
+  "version": "1.2.3",
+  "description": "A Rollup plugin for merging your hand written .d.ts files into the final output type file.",
+  "description_zh": "这个rollup插件会把你所有手写的.d.ts文件合并到最终输出的类型文件",
   "type": "module",
   "projectType": "library",
   "main": "./dist/index.cjs",

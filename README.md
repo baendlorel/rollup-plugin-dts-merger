@@ -4,6 +4,8 @@
   <em>🦄 A Rollup plugin for merging and replacing TypeScript declaration files (.d.ts) with flexible options! 🦄</em>
 </p>
 
+For more awesome packages, check out [my homepage💛](https://baendlorel.github.io/?repoType=npm)
+
 ---
 
 ## Table of Contents
