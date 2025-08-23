@@ -1,6 +1,6 @@
 {
   "name": "rollup-plugin-dts-merger",
-  "version": "1.2.3",
+  "version": "1.2.4",
   "description": "A Rollup plugin for merging your hand written .d.ts files into the final output type file.",
   "description_zh": "这个rollup插件会把你所有手写的.d.ts文件合并到最终输出的类型文件",
   "purpose": "rollup-plugin",
@@ -39,12 +39,12 @@
   "license": "MIT",
   "repository": {
     "type": "git",
-    "url": "git+https://github.com/KasukabeTsumugi/rollup-plugin-dts-merger.git"
+    "url": "git+https://github.com/baendlorel/rollup-plugin-dts-merger.git"
   },
   "bugs": {
-    "url": "https://github.com/KasukabeTsumugi/rollup-plugin-dts-merger/issues"
+    "url": "https://github.com/baendlorel/rollup-plugin-dts-merger/issues"
   },
-  "homepage": "https://github.com/KasukabeTsumugi/rollup-plugin-dts-merger#readme",
+  "homepage": "https://github.com/baendlorel/rollup-plugin-dts-merger#readme",
   "devDependencies": {
     "@babel/plugin-proposal-decorators": "^7.28.0",
     "@babel/preset-env": "^7.28.3",
