@@ -17,6 +17,10 @@ For more awesome packages, check out [my homepage💛](https://baendlorel.github
 - [Examples](#examples)
 - [Author](#author)
 
+## Changes in 1.3
+
+- Added `replaceLiteral` option for simple string replacements using `String.prototype.replaceAll`.
+
 ## Features
 
 - Merge multiple `.d.ts` files into a single file
@@ -62,12 +66,13 @@ export default {
 
 ### Plugin Options
 
-| Option      | Type                     | Default                  | Description                                                 |
-| ----------- | ------------------------ | ------------------------ | ----------------------------------------------------------- |
-| `include`   | `(string \| string[])[]` | `["src"]`                | Relative paths to include. Directories and files supported. |
-| `exclude`   | `(string \| string[])[]` | `[]`                     | Relative paths to exclude.                                  |
-| `mergeInto` | `string \| string[]`     | `["dist", "index.d.ts"]` | Output file path.                                           |
-| `replace`   | `ReplaceOptions`         | See below                | Replacement options.                                        |
+| Option           | Type                     | Default                  | Description                                                 |
+| ---------------- | ------------------------ | ------------------------ | ----------------------------------------------------------- |
+| `include`        | `(string \| string[])[]` | `["src"]`                | Relative paths to include. Directories and files supported. |
+| `exclude`        | `(string \| string[])[]` | `[]`                     | Relative paths to exclude.                                  |
+| `mergeInto`      | `string \| string[]`     | `["dist", "index.d.ts"]` | Output file path.                                           |
+| `replace`        | `ReplaceOptions`         | See below                | Replacement options.                                        |
+| `replaceLiteral` | `Record<string, any>`    | `{}`                     | use `string.replaceAll` to replace things                   |
 
 #### ReplaceOptions
 

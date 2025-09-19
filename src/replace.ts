@@ -90,3 +90,17 @@ export class Replacer {
     return content.replace(this._regex, (_, $1) => this._record[$1]);
   }
 }
+
+export function normalizeReplaceLiteral(
+  rawReplaceLiteral: Record<string, Any>
+): Map<string, string> {
+  const replaceLiteral = new Map<string, string>();
+  Object.entries(rawReplaceLiteral).forEach(([key, value]) => {
+    if (typeof value === 'function') {
+      replaceLiteral.set(key, String(value(key)));
+    } else {
+      replaceLiteral.set(key, String(value));
+    }
+  });
+  return replaceLiteral;
+}

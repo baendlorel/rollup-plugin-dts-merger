@@ -43,6 +43,23 @@ interface __OPTS__ {
    *    - default is `['\\b', '\\b(?!\\.)']` @see https://www.npmjs.com/package/@rollup/plugin-replace
    */
   replace: ReplaceOptions;
+
+  /**
+   * Simply use `String.prototype.replaceAll`, instead of using the replacer.
+   * - This is useful to make non-global `.d.ts` files can export types after building;
+   *
+   * by setting `rawReplace: { '\/*__FLAG__*\/': 'export' }`, then in your `.d.ts` files, you can write:
+   * ```ts
+   * // some.d.ts file content
+   * /*__FLAG__*\/ declare const XXX: boolean;
+   * ```
+   * built:
+   * ```ts
+   * // dts-merged
+   * export declare const XXX: boolean;
+   * ```
+   */
+  replaceLiteral: Record<string, Any>;
 }
 
 interface __STRICT_OPTS__ {
@@ -50,6 +67,7 @@ interface __STRICT_OPTS__ {
   exclude: Set<string>;
   mergeInto: string;
   replace: ReplaceOptions;
+  replaceLiteral: Map<string, string>;
 }
 
 interface ReplaceOptions {

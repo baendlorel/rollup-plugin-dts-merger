@@ -9,8 +9,8 @@ import {
 } from 'node:fs';
 import type { Plugin, PluginContext, RollupError } from 'rollup';
 
-import { normalizeReplace, Replacer } from './replace.js';
-import { defineProperty, isArray, isObject, isString, mustBe } from './native.js';
+import { normalizeReplace, normalizeReplaceLiteral, Replacer } from './replace.js';
+import { defineProperty, isArray, isObject, isString, keys, mustBe } from './native.js';
 import {
   DEFAULT_EXCLUDE,
   DEFAULT_INCLUDE,
@@ -56,6 +56,7 @@ function normalize(options?: DeepPartial<__OPTS__>): __STRICT_OPTS__ | string {
     exclude: rawExclude = DEFAULT_EXCLUDE,
     mergeInto = DEFAULT_MERGEINTO,
     replace: rawReplace = DEFAULT_REPLACE,
+    replaceLiteral: rawReplaceLiteral = DEFAULT_REPLACE,
   } = Object(options) as __OPTS__;
 
   const cwd = process.cwd();
@@ -66,6 +67,9 @@ function normalize(options?: DeepPartial<__OPTS__>): __STRICT_OPTS__ | string {
   }
   if (!isString(mergeInto) && !isArray(mergeInto)) {
     return mustBe('mergeInto', 'string/string[]');
+  }
+  if (!isObject(rawReplaceLiteral)) {
+    return mustBe('replaceLiteral', 'object');
   }
 
   const include = new Set(rawInclude.length ? rawInclude.map((item) => join(item)) : [join('src')]);
@@ -81,11 +85,14 @@ function normalize(options?: DeepPartial<__OPTS__>): __STRICT_OPTS__ | string {
     return replace;
   }
 
+  const replaceLiteral = normalizeReplaceLiteral(rawReplaceLiteral);
+
   return {
     include,
     exclude,
     mergeInto: join(mergeInto),
     replace,
+    replaceLiteral,
   };
 }
 
@@ -140,7 +147,7 @@ export function dtsMerger(options?: DeepPartial<__OPTS__>): Plugin {
         ctx.error(opts);
       }
 
-      const { include, exclude, mergeInto, replace } = opts as __STRICT_OPTS__;
+      const { include, exclude, mergeInto, replace, replaceLiteral } = opts as __STRICT_OPTS__;
       const replacer = new Replacer(replace);
 
       if (!existsSync(mergeInto)) {
@@ -158,9 +165,10 @@ export function dtsMerger(options?: DeepPartial<__OPTS__>): Plugin {
 
       // first, replace the content of `mergeInto` target
       if (existsSync(mergeInto) && statSync(mergeInto).isFile()) {
-        const content = readFileSync(mergeInto, 'utf8');
-        const replaced = replacer._exec(content);
-        writeFileSync(mergeInto, replaced, 'utf8');
+        let content = readFileSync(mergeInto, 'utf8');
+        content = replacer._exec(content);
+        replaceLiteral.forEach((v, k) => (content = content.replaceAll(k, v)));
+        writeFileSync(mergeInto, content, 'utf8');
       }
 
       // replace and append
