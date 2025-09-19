@@ -20,6 +20,7 @@ For more awesome packages, check out [my homepage💛](https://baendlorel.github
 ## Changes in 1.3
 
 - Added `replaceLiteral` option for simple string replacements using `String.prototype.replaceAll`.
+- Fixed an issue where an empty `replace` option would replace all characters with `undefined`. Now, if `replace` is empty, no replacements are made.
 
 ## Features
 
