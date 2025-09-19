@@ -170,4 +170,24 @@ describe('dts-merger plugin', () => {
       afterValue: 1,
     });
   });
+
+  it('should apply replaceLiteral to existing merge target file', () => {
+    // prepare a merge target file that contains a literal to be replaced
+    const runner = new PluginRunner('replace-literal.d.ts', {
+      replaceLiteral: {
+        '/*__LITERAL__*/': 'export',
+      },
+    });
+
+    const result = runner.run('/*__LITERAL__*/', 'export');
+
+    // before: source files do not contain the literal
+    // after: the two occurrences in the merge target should be replaced
+    expect(result).toMatchObject({
+      beforeKey: 1,
+      beforeValue: 0,
+      afterKey: 0,
+      afterValue: 1,
+    });
+  });
 });
