@@ -10,7 +10,7 @@ import {
 import type { Plugin, PluginContext } from 'rollup';
 import { createFilter } from '@rollup/pluginutils';
 
-import { applyReplaceLiteral } from './replace.js';
+import { replace } from './replace.js';
 import { RollupDtsMergerOptions } from './global.js';
 
 export function recursion(
@@ -50,26 +50,34 @@ function normalize(options?: RollupDtsMergerOptions): __STRICT_OPTS__ {
     include = ['src'],
     exclude = [],
     mergeInto = 'dist/index.d.ts',
-    replaceLiteral: rawReplaceLiteral = {},
+    replace: rawReplace = {},
   } = Object(options) as RollupDtsMergerOptions;
 
   if (typeof mergeInto === 'string') {
     throw new TypeError('mergeInto must be a string');
   }
-  if (rawReplaceLiteral === null || typeof rawReplaceLiteral !== 'object') {
-    throw new TypeError('replaceLiteral must be an object');
+  if (rawReplace === null || typeof rawReplace !== 'object') {
+    throw new TypeError('replace must be an object');
   }
 
-  const replaceLiteral: string[] = [];
-  Object.entries(rawReplaceLiteral).forEach(([key, value]) => {
+  const replaceList: string[] = [];
+  Object.entries(rawReplace).forEach(([key, value]) => {
     if (typeof value === 'function') {
-      replaceLiteral.push(key, String(value(key)));
+      replaceList.push(key, String(value(key)));
     } else {
-      replaceLiteral.push(key, String(value));
+      replaceList.push(key, String(value));
     }
   });
 
-  return { include, exclude, mergeInto, replaceLiteral };
+  const filter = createFilter(include, exclude);
+  const list: string[] = [];
+  const nonexist: string[] = [];
+  recursion(filter, process.cwd(), list, nonexist);
+  if (nonexist.length > 0) {
+    console.warn(`__NAME__: The following files do not exist:\n${nonexist.join('\n')}`);
+  }
+
+  return { list, mergeInto, replaceList };
 }
 
 /**
@@ -102,7 +110,7 @@ export function dtsMerger(options?: RollupDtsMergerOptions): Plugin {
   const plugin: Plugin = {
     name: '__NAME__',
     writeBundle(this: PluginContext) {
-      const { include, exclude, mergeInto, replaceLiteral } = opts;
+      const { list, mergeInto, replaceList } = opts;
 
       if (!existsSync(mergeInto)) {
         const rel = relative(cwd, mergeInto);
@@ -110,27 +118,20 @@ export function dtsMerger(options?: RollupDtsMergerOptions): Plugin {
         throw new Error(`__NAME__: '${rel}' does not exist, please check the order of plugins!`);
       }
 
-      const filter = createFilter(include, exclude);
-      const list: string[] = [];
-      const nonexist: string[] = [];
-      recursion(filter, process.cwd(), list, nonexist);
-      if (nonexist.length > 0) {
-        console.warn(`__NAME__: The following files do not exist:\n${nonexist.join('\n')}`);
-      }
-
       // first, replace the content of `mergeInto` target
       if (existsSync(mergeInto) && statSync(mergeInto).isFile()) {
         let content = readFileSync(mergeInto, 'utf8');
-        content = applyReplaceLiteral(replaceLiteral, content);
+        content = replace(replaceList, content);
         writeFileSync(mergeInto, content, 'utf8');
       }
 
       // replace and append
       for (let i = 0; i < list.length; i++) {
-        const relativePath = relative(cwd, list[i]);
         let content = readFileSync(list[i], 'utf8');
-        content = applyReplaceLiteral(replaceLiteral, content);
-        const s = `\n// \u0023 from: ${relativePath}\n`.concat(content);
+        content = replace(replaceList, content);
+
+        const relativePath = relative(cwd, list[i]);
+        const s = `\n// \u0023 from: ${relativePath}\n${content}`;
         appendFileSync(mergeInto, s, 'utf8');
       }
     },

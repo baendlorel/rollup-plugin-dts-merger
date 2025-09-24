@@ -25,9 +25,9 @@ export function stringify(key: string, value: any): string {
   }
 }
 
-export function applyReplaceLiteral(dict: string[], str: string): string {
-  for (let i = 0; i < dict.length; i += 2) {
-    str = str.replaceAll(dict[i], dict[i + 1]);
+export function replace(replaceList: string[], str: string): string {
+  for (let i = 0; i < replaceList.length; i += 2) {
+    str = str.replaceAll(replaceList[i], replaceList[i + 1]);
   }
   return str;
 }

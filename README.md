@@ -19,7 +19,7 @@ For more awesome packages, check out [my homepage💛](https://baendlorel.github
 
 ## Changes in 1.3
 
-- Added `replaceLiteral` option for simple string replacements using `String.prototype.replaceAll`.
+- Added `replace` option for simple string replacements using `String.prototype.replaceAll`.
 - Fixed an issue where an empty `replace` option would replace all characters with `undefined`. Now, if `replace` is empty, no replacements are made.
 
 ## Features
@@ -67,13 +67,13 @@ export default {
 
 ### Plugin Options
 
-| Option           | Type                     | Default                  | Description                                                 |
-| ---------------- | ------------------------ | ------------------------ | ----------------------------------------------------------- |
-| `include`        | `(string \| string[])[]` | `["src"]`                | Relative paths to include. Directories and files supported. |
-| `exclude`        | `(string \| string[])[]` | `[]`                     | Relative paths to exclude.                                  |
-| `mergeInto`      | `string \| string[]`     | `["dist", "index.d.ts"]` | Output file path.                                           |
-| `replace`        | `ReplaceOptions`         | See below                | Replacement options.                                        |
-| `replaceLiteral` | `Record<string, any>`    | `{}`                     | use `string.replaceAll` to replace things                   |
+| Option      | Type                     | Default                  | Description                                                 |
+| ----------- | ------------------------ | ------------------------ | ----------------------------------------------------------- |
+| `include`   | `(string \| string[])[]` | `["src"]`                | Relative paths to include. Directories and files supported. |
+| `exclude`   | `(string \| string[])[]` | `[]`                     | Relative paths to exclude.                                  |
+| `mergeInto` | `string \| string[]`     | `["dist", "index.d.ts"]` | Output file path.                                           |
+| `replace`   | `ReplaceOptions`         | See below                | Replacement options.                                        |
+| `replace`   | `Record<string, any>`    | `{}`                     | use `string.replaceAll` to replace things                   |
 
 #### ReplaceOptions
 

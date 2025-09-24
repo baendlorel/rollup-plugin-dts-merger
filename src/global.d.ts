@@ -33,5 +33,5 @@ export interface RollupDtsMergerOptions {
    * export declare const XXX: boolean;
    * ```
    */
-  replaceLiteral?: Record<string, any>;
+  replace?: Record<string, any>;
 }

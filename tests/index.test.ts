@@ -171,10 +171,10 @@ describe('dts-merger plugin', () => {
     });
   });
 
-  it('should apply replaceLiteral to existing merge target file', () => {
+  it('should apply replace to existing merge target file', () => {
     // prepare a merge target file that contains a literal to be replaced
     const runner = new PluginRunner('replace-literal.d.ts', {
-      replaceLiteral: {
+      replace: {
         '/*__LITERAL__*/': 'export',
       },
     });
