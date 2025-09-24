@@ -5,14 +5,23 @@ import { createFilter, FilterPattern } from '@rollup/pluginutils';
 type Filter = (s: string) => boolean;
 
 export function getFiles(include: FilterPattern, exclude: FilterPattern) {
+  const filters = createFilters(include, exclude);
+  const dtsFiles: string[] = [];
+  recursion(filters.excludes, process.cwd(), dtsFiles);
+  return dtsFiles.filter(filters.includes);
+}
+
+export function createFilters(include: FilterPattern, exclude: FilterPattern) {
   const includes = createFilter(include, null);
 
   // & Because createFilter always creates an `include` function, so exclude must be its opposite.
-  const excludes = (id: string) => !createFilter(null, exclude);
+  const reversedExcludes = createFilter(null, exclude);
+  const excludes = (id: string) => !reversedExcludes(id);
 
-  const dtsFiles: string[] = [];
-  recursion(excludes, process.cwd(), dtsFiles);
-  return dtsFiles.filter(includes);
+  return {
+    includes,
+    excludes,
+  };
 }
 
 /**
@@ -40,7 +49,6 @@ function recursion(excludes: Filter, nextPath: string, list: string[]) {
     }
     return;
   }
-
   if (s.isFile() && nextPath.endsWith('.d.ts')) {
     list.push(nextPath);
     return;

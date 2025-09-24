@@ -5,12 +5,12 @@ import { run } from './runner.js';
 
 describe('Options and Error Scenarios', () => {
   it('mergeInto invalid type', () => {
-    expect(() => normalize({ mergeInto: NaN as any })).toThrow();
+    expect(() => normalize({ mergeInto: NaN as any })).toThrow(/must be/);
   });
 
   it('replace is not an object', () => {
-    expect(() => run('common.d.ts', 'output', { replace: null as any })).toThrow();
-    expect(() => run('common.d.ts', 'output', { replace: 123 as any })).toThrow();
+    expect(() => run('common.d.ts', 'output', { replace: null as any })).toThrow(/must be/);
+    expect(() => run('common.d.ts', 'output', { replace: 123 as any })).toThrow(/must be/);
   });
 
   it('include file does not exist', () => {
@@ -20,16 +20,21 @@ describe('Options and Error Scenarios', () => {
   });
 
   it('replace supports function', () => {
-    const { content } = run('common.d.ts', 'replace-fn', {
+    const { content, options } = run('*.d.ts', 'replace-fn', {
+      exclude: [], //& default excludes `tests/**`, so here we have to explicitly give `[]`
       replace: {
         __FLAG__: (k: string) => k + '_fn',
       },
     });
+
+    console.log(content);
+
     expect(content).toContain('__FLAG___fn');
   });
 
   it('replace supports null/undefined/boolean/number', () => {
     const { content } = run('common.d.ts', 'replace-types', {
+      exclude: [], //& default excludes `tests/**`, so here we have to explicitly give `[]`
       replace: {
         __FLAG__: null,
         __EXPORT_FLAG__: undefined,

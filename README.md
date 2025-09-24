@@ -1,7 +1,6 @@
 <h1 align="center">rollup-plugin-dts-merger</h1>
 
-[![npm version](https://img.shields.io/npm/v/rollup-plugin-dts-merger.svg)](https://www.npmjs.com/package/rollup-plugin-dts-merger)
-[![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](https://opensource.org/licenses/MIT)
+[![npm version](https://img.shields.io/npm/v/rollup-plugin-dts-merger.svg)](https://www.npmjs.com/package/rollup-plugin-dts-merger) [![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](https://opensource.org/licenses/MIT)
 
 <p align="center">
   <em>🦄 A Rollup plugin for merging and replacing TypeScript declaration files (.d.ts) with flexible options! 🦄</em>
@@ -36,9 +35,9 @@ export default {
   plugins: [
     dts(), // Generate .d.ts first
     dtsMerger({
-      include: ['src/**'],
-      exclude: ['test/**', 'tests/**', 'dist/**', 'node_modules/**'],
-      mergeInto: 'dist/index.d.ts',
+      include: ['src/**'], // ← this is default value
+      exclude: ['test/**', 'tests/**', 'dist/**', 'node_modules/**'], // ← this is default value
+      mergeInto: 'dist/index.d.ts', // ← this is default value
       replace: {
         '/*__DEV__*/': 'export',
         __VERSION__: '2.0.0',
