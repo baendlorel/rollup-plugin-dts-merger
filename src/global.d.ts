@@ -3,11 +3,14 @@ import { FilterPattern } from '@rollup/pluginutils';
 export interface RollupDtsMergerOptions {
   /**
    * A valid picomatch glob pattern, or array of patterns.
+   * @default `['src/**']`
    */
   include?: FilterPattern;
 
   /**
    * A valid picomatch glob pattern, or array of patterns.
+   * - Definitely exclude `node_modules`(even if you pass `[]` to it) to avoid unnecessary processing
+   * @default `['test/**', 'tests/**', 'dist/**', 'node_modules/**']`
    */
   exclude?: FilterPattern;
 

@@ -62,6 +62,7 @@ export default {
 
 - **Type**: Glob filter pattern
 - **Default**: `['test/**', 'tests/**', 'dist/**', 'node_modules/**']`
+  - Definitely exclude `node_modules`(even if you pass `[]` to it) to avoid unnecessary processing
 - **Description**: Glob patterns to exclude files/directories from merging.
 
 ### `mergeInto`

@@ -1,12 +1,14 @@
-import { existsSync, statSync, readdirSync } from 'node:fs';
-import { join } from 'node:path';
+import { statSync, readdirSync } from 'node:fs';
+import { join, parse } from 'node:path';
 import { createFilter, FilterPattern } from '@rollup/pluginutils';
 
 type Filter = (s: string) => boolean;
 
 export function getFiles(include: FilterPattern, exclude: FilterPattern) {
   const includes = createFilter(include, null);
-  const excludes = createFilter(null, exclude);
+
+  // & Because createFilter always creates an `include` function, so exclude must be its opposite.
+  const excludes = (id: string) => !createFilter(null, exclude);
 
   const dtsFiles: string[] = [];
   recursion(excludes, process.cwd(), dtsFiles);
@@ -25,9 +27,12 @@ function recursion(excludes: Filter, nextPath: string, list: string[]) {
   if (excludes(nextPath)) {
     return;
   }
-
   const s = statSync(nextPath);
   if (s.isDirectory()) {
+    if (parse(nextPath).base === 'node_modules') {
+      return;
+    }
+
     const items = readdirSync(nextPath);
     for (let i = 0; i < items.length; i++) {
       const fullPath = join(nextPath, items[i]);
