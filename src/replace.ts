@@ -1,16 +1,8 @@
-import { DeepPartial, ReplaceOptions } from './global.js';
-import {
-  DEFAULT_REPLACE_DELIMITERS,
-  DEFAULT_REPLACE_PREVENTASSIGNMENT,
-  DEFAULT_REPLACE_PREVENTASSIGNMENT_LOOKBEHIND,
-  DEFAULT_REPLACE_PREVENTASSIGNMENT_LOOLAHEAD,
-  DEFAULT_REPLACE_VALUES,
-} from './defaults.js';
-import { entries, isArray, isObject, isString, keys, mustBe } from './native.js';
-
-const escape = (str: string) => str.replace(/[-[\]/{}()*+?.\\^$|]/g, '\\$&');
-
-const longest = (a: string, b: string) => b.length - a.length;
+String.prototype.replaceAll =
+  String.prototype.replaceAll ||
+  function (this: string, search: string, replacement: string) {
+    return this.split(search).join(replacement);
+  };
 
 export function stringify(key: string, value: any): string {
   if (value === null) {
@@ -32,84 +24,10 @@ export function stringify(key: string, value: any): string {
       throw new TypeError(`Unsupported replacement type for key "${key}": ${typeof value}`);
   }
 }
-export function normalizeReplace(replace: DeepPartial<ReplaceOptions>): ReplaceOptions | string {
-  if (!isObject(replace)) {
-    return mustBe('replace', 'object');
+
+export function applyReplaceLiteral(dict: string[], str: string): string {
+  for (let i = 0; i < dict.length; i += 2) {
+    str = str.replaceAll(dict[i], dict[i + 1]);
   }
-
-  const {
-    delimiters = DEFAULT_REPLACE_DELIMITERS,
-    preventAssignment = DEFAULT_REPLACE_PREVENTASSIGNMENT,
-    values = DEFAULT_REPLACE_VALUES,
-  } = replace as ReplaceOptions;
-
-  if (!isArray(delimiters) || !isString(delimiters[0]) || !isString(delimiters[1])) {
-    return mustBe('delimiters', '[string, string]');
-  }
-
-  if (typeof preventAssignment !== 'boolean') {
-    return mustBe('preventAssignment', 'boolean');
-  }
-
-  if (!isObject(values)) {
-    return mustBe('values', 'object');
-  }
-
-  return { delimiters, preventAssignment, values };
-}
-
-export class Replacer {
-  private readonly _record: Record<string, string> | null;
-  private readonly _regex: RegExp;
-
-  constructor(options: ReplaceOptions) {
-    this._record = this._generateMap(options.values);
-    this._regex = this._generateRegExp(options);
-  }
-
-  _generateMap(values: Record<string, any>): Record<string, string> | null {
-    const map: Record<string, string> = {};
-    const list = entries(values);
-    if (list.length === 0) {
-      return null;
-    }
-
-    for (const [key, value] of list) {
-      map[key] = stringify(key, value);
-    }
-    return map;
-  }
-
-  _generateRegExp(options: ReplaceOptions): RegExp {
-    const { delimiters: d, preventAssignment, values } = options;
-    const k = keys(values).sort(longest).map(escape);
-
-    // negative lookbehind
-    const b = preventAssignment ? DEFAULT_REPLACE_PREVENTASSIGNMENT_LOOKBEHIND : '';
-    // negative lookahead
-    const a = preventAssignment ? DEFAULT_REPLACE_PREVENTASSIGNMENT_LOOLAHEAD : '';
-
-    return new RegExp(`${b}${d[0]}(${k.join('|')})${d[1]}${a}`, 'g');
-  }
-
-  _exec(content: string) {
-    if (this._record === null) {
-      return content;
-    }
-    return content.replace(this._regex, (_, $1) => this._record![$1]);
-  }
-}
-
-export function normalizeReplaceLiteral(
-  rawReplaceLiteral: Record<string, any>
-): Map<string, string> {
-  const replaceLiteral = new Map<string, string>();
-  Object.entries(rawReplaceLiteral).forEach(([key, value]) => {
-    if (typeof value === 'function') {
-      replaceLiteral.set(key, String(value(key)));
-    } else {
-      replaceLiteral.set(key, String(value));
-    }
-  });
-  return replaceLiteral;
+  return str;
 }

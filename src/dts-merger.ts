@@ -7,37 +7,30 @@ import {
   appendFileSync,
   writeFileSync,
 } from 'node:fs';
-import type { Plugin, PluginContext, RollupError } from 'rollup';
+import type { Plugin, PluginContext } from 'rollup';
 import { createFilter } from '@rollup/pluginutils';
 
-import { normalizeReplace, normalizeReplaceLiteral, Replacer } from './replace.js';
-import { defineProperty, isArray, isObject, isString, mustBe } from './native.js';
-import {
-  DEFAULT_EXCLUDE,
-  DEFAULT_INCLUDE,
-  DEFAULT_MERGEINTO,
-  DEFAULT_REPLACE,
-} from './defaults.js';
-import { __OPTS__, __STRICT_OPTS__, DeepPartial } from './global.js';
+import { applyReplaceLiteral } from './replace.js';
+import { RollupDtsMergerOptions } from './global.js';
 
 export function recursion(
-  exclude: Set<string>,
-  unknownPath: string,
+  filter: (id: unknown) => boolean,
+  nextPath: string,
   list: string[],
   nonexist: string[]
 ) {
-  if (exclude.has(unknownPath)) {
+  if (!filter(nextPath)) {
     return;
   }
 
-  if (!existsSync(unknownPath)) {
-    nonexist.push(unknownPath);
+  if (!existsSync(nextPath)) {
+    nonexist.push(nextPath);
     return;
   }
 
-  const s = statSync(unknownPath);
-  if (s.isFile() && unknownPath.endsWith('.d.ts')) {
-    list.push(unknownPath);
+  const s = statSync(nextPath);
+  if (s.isFile() && nextPath.endsWith('.d.ts')) {
+    list.push(nextPath);
     return;
   }
 
@@ -45,57 +38,38 @@ export function recursion(
     return;
   }
 
-  const items = readdirSync(unknownPath);
+  const items = readdirSync(nextPath);
   for (let i = 0; i < items.length; i++) {
-    const fullPath = pathJoin(unknownPath, items[i]);
-    recursion(exclude, fullPath, list, nonexist);
+    const fullPath = pathJoin(nextPath, items[i]);
+    recursion(filter, fullPath, list, nonexist);
   }
 }
 
-function normalize(options?: DeepPartial<__OPTS__>): __STRICT_OPTS__ | string {
+function normalize(options?: RollupDtsMergerOptions): __STRICT_OPTS__ {
   const {
-    mergeInto = DEFAULT_MERGEINTO,
-    replace: rawReplace = DEFAULT_REPLACE,
-    replaceLiteral: rawReplaceLiteral = DEFAULT_REPLACE,
-  } = Object(options) as __OPTS__;
+    include = ['src'],
+    exclude = [],
+    mergeInto = 'dist/index.d.ts',
+    replaceLiteral: rawReplaceLiteral = {},
+  } = Object(options) as RollupDtsMergerOptions;
 
-  const cwd = process.cwd();
-  const join = (p: string | string[]) => (isArray(p) ? pathJoin(cwd, ...p) : pathJoin(cwd, p));
-
-  if (!isString(mergeInto) && !isArray(mergeInto)) {
-    return mustBe('mergeInto', 'string/string[]');
+  if (typeof mergeInto === 'string') {
+    throw new TypeError('mergeInto must be a string');
   }
-  if (!isObject(rawReplaceLiteral)) {
-    return mustBe('replaceLiteral', 'object');
+  if (rawReplaceLiteral === null || typeof rawReplaceLiteral !== 'object') {
+    throw new TypeError('replaceLiteral must be an object');
   }
 
-  const replace = normalizeReplace(rawReplace);
-  if (isString(replace)) {
-    return replace;
-  }
+  const replaceLiteral: string[] = [];
+  Object.entries(rawReplaceLiteral).forEach(([key, value]) => {
+    if (typeof value === 'function') {
+      replaceLiteral.push(key, String(value(key)));
+    } else {
+      replaceLiteral.push(key, String(value));
+    }
+  });
 
-  const replaceLiteral = normalizeReplaceLiteral(rawReplaceLiteral);
-
-  return {
-    mergeInto: join(mergeInto),
-    replace,
-    replaceLiteral,
-  };
-}
-
-function getContext(ctx: PluginContext) {
-  const fallback = {
-    warn: console.warn,
-    error: (e: string | RollupError) => {
-      throw isString(e) ? new Error(e) : e;
-    },
-  };
-
-  if (!isObject(ctx)) {
-    return fallback;
-  }
-
-  return typeof ctx.warn === 'function' ? ctx : fallback;
+  return { include, exclude, mergeInto, replaceLiteral };
 }
 
 /**
@@ -104,7 +78,7 @@ function getContext(ctx: PluginContext) {
  *
  * We have a built in simple replacer which looks like '@rollup/plugin-replace', shares some same options.
  *
- * @params options __OPTS__
+ * @params options RollupDtsMergerOptions
  * @returns Plugin
  *
  * ## Usage
@@ -117,44 +91,37 @@ function getContext(ctx: PluginContext) {
  *   plugins: [dts({ tsconfig }), dtsMerger()],
  * }
  * ```
- * You can use options(__OPTS__) to customize the behavior
+ * You can use options(RollupDtsMergerOptions) to customize the behavior
  *
  * __PKG_INFO__
  */
-export function dtsMerger(options?: DeepPartial<__OPTS__>): Plugin {
+export function dtsMerger(options?: RollupDtsMergerOptions): Plugin {
   const cwd = process.cwd();
   const opts = normalize(options);
 
   const plugin: Plugin = {
     name: '__NAME__',
     writeBundle(this: PluginContext) {
-      const ctx = getContext(this);
-
-      if (isString(opts)) {
-        ctx.error(opts);
-      }
-
-      const { mergeInto, replace, replaceLiteral } = opts as __STRICT_OPTS__;
-      const replacer = new Replacer(replace);
+      const { include, exclude, mergeInto, replaceLiteral } = opts;
 
       if (!existsSync(mergeInto)) {
         const rel = relative(cwd, mergeInto);
         // & only warns but not quit
-        ctx.warn(`__NAME__: '__OPTS__${rel}' does not exist, please check the order of plugins!`);
+        throw new Error(`__NAME__: '${rel}' does not exist, please check the order of plugins!`);
       }
 
+      const filter = createFilter(include, exclude);
       const list: string[] = [];
       const nonexist: string[] = [];
-      include.forEach((p) => recursion(exclude, p, list, nonexist));
+      recursion(filter, process.cwd(), list, nonexist);
       if (nonexist.length > 0) {
-        ctx.warn(`__NAME__: The following files do not exist:\n${nonexist.join('\n')}`);
+        console.warn(`__NAME__: The following files do not exist:\n${nonexist.join('\n')}`);
       }
 
       // first, replace the content of `mergeInto` target
       if (existsSync(mergeInto) && statSync(mergeInto).isFile()) {
         let content = readFileSync(mergeInto, 'utf8');
-        content = replacer._exec(content);
-        replaceLiteral.forEach((v, k) => (content = content.replaceAll(k, v)));
+        content = applyReplaceLiteral(replaceLiteral, content);
         writeFileSync(mergeInto, content, 'utf8');
       }
 
@@ -162,17 +129,14 @@ export function dtsMerger(options?: DeepPartial<__OPTS__>): Plugin {
       for (let i = 0; i < list.length; i++) {
         const relativePath = relative(cwd, list[i]);
         let content = readFileSync(list[i], 'utf8');
-        content = replacer._exec(content);
-        replaceLiteral.forEach((v, k) => (content = content.replaceAll(k, v)));
+        content = applyReplaceLiteral(replaceLiteral, content);
         const s = `\n// \u0023 from: ${relativePath}\n`.concat(content);
         appendFileSync(mergeInto, s, 'utf8');
       }
     },
   };
 
-  defineProperty(plugin, '__KSKB_TUMUGI__', {
-    value: opts,
-  });
+  Reflect.defineProperty(plugin, '__KSKB_TSUMUGI__', { value: opts });
 
   return plugin as Plugin;
 }
