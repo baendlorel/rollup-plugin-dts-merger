@@ -11,7 +11,6 @@ import terser from '@rollup/plugin-terser';
 import babel from '@rollup/plugin-babel';
 import replace from '@rollup/plugin-replace';
 import dts from 'rollup-plugin-dts';
-import dtsMerger from 'rollup-plugin-dts-merger';
 
 // custom plugins
 import { replaceOpts } from './plugins/replace.mjs';
@@ -97,27 +96,9 @@ const options = [
 const declaration = {
   input: 'src/index.ts',
   output: [{ file: 'dist/index.d.ts', format: 'es' }],
-  plugins: [
-    alias(aliasOpts),
-    replace(replaceOpts),
-    dts({ tsconfig }),
-    dtsMerger({ replace: replaceOpts }),
-  ],
+  plugins: [alias(aliasOpts), replace(replaceOpts), dts({ tsconfig })],
 };
 
-/**
- * @type {'library' | 'server' | 'web'}
- */
-pkg.projectType = 'library';
-switch (pkg.projectType) {
-  case 'library':
-    options.push(declaration);
-    break;
-  case 'server':
-  case 'web':
-    break;
-  default:
-    throw new Error(`Project type must be 'library', 'server', or 'web'. Got '${pkg.projectType}'`);
-}
+options.push(declaration);
 
 export default options;

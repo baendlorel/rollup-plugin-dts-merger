@@ -1,3 +1,4 @@
+import { DeepPartial, ReplaceOptions } from './global.js';
 import {
   DEFAULT_REPLACE_DELIMITERS,
   DEFAULT_REPLACE_PREVENTASSIGNMENT,
@@ -11,7 +12,7 @@ const escape = (str: string) => str.replace(/[-[\]/{}()*+?.\\^$|]/g, '\\$&');
 
 const longest = (a: string, b: string) => b.length - a.length;
 
-export function stringify(key: string, value: Any): string {
+export function stringify(key: string, value: any): string {
   if (value === null) {
     return 'null';
   }
@@ -66,7 +67,7 @@ export class Replacer {
     this._regex = this._generateRegExp(options);
   }
 
-  _generateMap(values: Record<string, Any>): Record<string, string> | null {
+  _generateMap(values: Record<string, any>): Record<string, string> | null {
     const map: Record<string, string> = {};
     const list = entries(values);
     if (list.length === 0) {
@@ -100,7 +101,7 @@ export class Replacer {
 }
 
 export function normalizeReplaceLiteral(
-  rawReplaceLiteral: Record<string, Any>
+  rawReplaceLiteral: Record<string, any>
 ): Map<string, string> {
   const replaceLiteral = new Map<string, string>();
   Object.entries(rawReplaceLiteral).forEach(([key, value]) => {

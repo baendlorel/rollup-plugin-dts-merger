@@ -8,15 +8,17 @@ import {
   writeFileSync,
 } from 'node:fs';
 import type { Plugin, PluginContext, RollupError } from 'rollup';
+import { createFilter } from '@rollup/pluginutils';
 
 import { normalizeReplace, normalizeReplaceLiteral, Replacer } from './replace.js';
-import { defineProperty, isArray, isObject, isString, keys, mustBe } from './native.js';
+import { defineProperty, isArray, isObject, isString, mustBe } from './native.js';
 import {
   DEFAULT_EXCLUDE,
   DEFAULT_INCLUDE,
   DEFAULT_MERGEINTO,
   DEFAULT_REPLACE,
 } from './defaults.js';
+import { __OPTS__, __STRICT_OPTS__, DeepPartial } from './global.js';
 
 export function recursion(
   exclude: Set<string>,
@@ -52,8 +54,6 @@ export function recursion(
 
 function normalize(options?: DeepPartial<__OPTS__>): __STRICT_OPTS__ | string {
   const {
-    include: rawInclude = DEFAULT_INCLUDE,
-    exclude: rawExclude = DEFAULT_EXCLUDE,
     mergeInto = DEFAULT_MERGEINTO,
     replace: rawReplace = DEFAULT_REPLACE,
     replaceLiteral: rawReplaceLiteral = DEFAULT_REPLACE,
@@ -62,22 +62,11 @@ function normalize(options?: DeepPartial<__OPTS__>): __STRICT_OPTS__ | string {
   const cwd = process.cwd();
   const join = (p: string | string[]) => (isArray(p) ? pathJoin(cwd, ...p) : pathJoin(cwd, p));
 
-  if (!isArray(rawInclude) || !isArray(rawExclude)) {
-    return mustBe('include and exclude', 'array');
-  }
   if (!isString(mergeInto) && !isArray(mergeInto)) {
     return mustBe('mergeInto', 'string/string[]');
   }
   if (!isObject(rawReplaceLiteral)) {
     return mustBe('replaceLiteral', 'object');
-  }
-
-  const include = new Set(rawInclude.length ? rawInclude.map((item) => join(item)) : [join('src')]);
-  const exclude = new Set(rawExclude.map((item) => join(item)));
-  const union = new Set([...include, ...exclude]);
-
-  if (union.size !== include.size + exclude.size) {
-    return mustBe('include and exclude', 'disjoint');
   }
 
   const replace = normalizeReplace(rawReplace);
@@ -88,8 +77,6 @@ function normalize(options?: DeepPartial<__OPTS__>): __STRICT_OPTS__ | string {
   const replaceLiteral = normalizeReplaceLiteral(rawReplaceLiteral);
 
   return {
-    include,
-    exclude,
     mergeInto: join(mergeInto),
     replace,
     replaceLiteral,
@@ -147,7 +134,7 @@ export function dtsMerger(options?: DeepPartial<__OPTS__>): Plugin {
         ctx.error(opts);
       }
 
-      const { include, exclude, mergeInto, replace, replaceLiteral } = opts as __STRICT_OPTS__;
+      const { mergeInto, replace, replaceLiteral } = opts as __STRICT_OPTS__;
       const replacer = new Replacer(replace);
 
       if (!existsSync(mergeInto)) {

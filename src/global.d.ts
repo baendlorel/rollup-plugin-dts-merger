@@ -1,27 +1,19 @@
-type Any = string | number | boolean | null | undefined | object | symbol | bigint | Function;
+import { FilterPattern } from '@rollup/pluginutils';
 
 type DeepPartial<T> = {
   [P in keyof T]?: T[P] extends object ? DeepPartial<T[P]> : T[P];
 };
 
-interface __OPTS__ {
+export interface __OPTS__ {
   /**
-   * Relative paths, will join the given paths with `process.pwd()`
-   * - if item is `string[]`, will use `path.join(<cwd>,...item)`
-   * - if path is a:
-   *   - directory: will check into it
-   *   - file: will check if it is a `.d.ts` file
-   * @default ['src']
+   * A valid picomatch glob pattern, or array of patterns.
    */
-  include: (string | string[])[];
+  include?: FilterPattern;
 
   /**
-   * Relative paths, will join the given paths with `process.pwd()`
-   * - if item is `string[]`, will use `path.join(<cwd>,...item)`
-   * - will skip this file/directory
-   * @default []
+   * A valid picomatch glob pattern, or array of patterns.
    */
-  exclude: (string | string[])[];
+  exclude?: FilterPattern;
 
   /**
    * The file to merge into, relative to `process.cwd()`
@@ -62,15 +54,13 @@ interface __OPTS__ {
   replaceLiteral: Record<string, Any>;
 }
 
-interface __STRICT_OPTS__ {
-  include: Set<string>;
-  exclude: Set<string>;
+export interface __STRICT_OPTS__ {
   mergeInto: string;
   replace: ReplaceOptions;
   replaceLiteral: Map<string, string>;
 }
 
-interface ReplaceOptions {
+export interface ReplaceOptions {
   /**
    * To replace every occurrence of `<@foo@>` instead of every occurrence of `foo`, supply delimiters
    * - `[string, string]` is actually `[prefix, suffix]`
