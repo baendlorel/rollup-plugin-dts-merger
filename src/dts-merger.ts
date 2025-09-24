@@ -53,7 +53,7 @@ function normalize(options?: RollupDtsMergerOptions): __STRICT_OPTS__ {
     replace: rawReplace = {},
   } = Object(options) as RollupDtsMergerOptions;
 
-  if (typeof mergeInto === 'string') {
+  if (typeof mergeInto !== 'string') {
     throw new TypeError('mergeInto must be a string');
   }
   if (rawReplace === null || typeof rawReplace !== 'object') {
