@@ -1,4 +1,4 @@
-import { join as pathJoin, relative } from 'node:path';
+import { join, relative } from 'node:path';
 import {
   readdirSync,
   readFileSync,
@@ -7,7 +7,7 @@ import {
   appendFileSync,
   writeFileSync,
 } from 'node:fs';
-import type { Plugin, PluginContext } from 'rollup';
+import type { Plugin } from 'rollup';
 import { createFilter } from '@rollup/pluginutils';
 
 import { replace } from './replace.js';
@@ -40,7 +40,7 @@ export function recursion(
 
   const items = readdirSync(nextPath);
   for (let i = 0; i < items.length; i++) {
-    const fullPath = pathJoin(nextPath, items[i]);
+    const fullPath = join(nextPath, items[i]);
     recursion(filter, fullPath, list, nonexist);
   }
 }
@@ -109,7 +109,7 @@ export function dtsMerger(options?: RollupDtsMergerOptions): Plugin {
 
   const plugin: Plugin = {
     name: '__NAME__',
-    writeBundle(this: PluginContext) {
+    writeBundle() {
       const { list, mergeInto, replaceList } = opts;
 
       if (!existsSync(mergeInto)) {
@@ -137,7 +137,7 @@ export function dtsMerger(options?: RollupDtsMergerOptions): Plugin {
     },
   };
 
-  Reflect.defineProperty(plugin, '__KSKB_TSUMUGI__', { value: opts });
+  Reflect.defineProperty(plugin, '__KSKB_TMG_OPTS__', { value: opts });
 
   return plugin as Plugin;
 }
