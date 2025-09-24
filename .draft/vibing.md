@@ -32,3 +32,12 @@
 2. 避免：include仅仅包含一个文件，导致遍历的是dirname的时候不匹配反而被返回——这个问题我不知道有什么办法避免，你帮我想想办法；
 3. 不要全量搜索后再判定，这会很耗时
 4. 只完成这个函数，不要改其他地方
+
+---
+
+然后，你根据你写的这个函数，完成tests/include-cases.test.ts文件，要求:
+
+1. 只调用src/get-files.ts中的getFiles函数，不需要真的run；
+2. 用vitest的那一套写；
+3. 对各种场景进行测试，确保include和exclude的功能都正常；
+4. 测试文件放在tests/mocks/下；
