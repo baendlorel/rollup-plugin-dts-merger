@@ -25,7 +25,7 @@ const tsconfig = './tsconfig.build.json';
  * @type {import('@rollup/plugin-alias').RollupAliasOptions}
  */
 const aliasOpts = {
-  entries: [{ find: /^@/, replacement: path.resolve(import.meta.dirname, 'src') }],
+  entries: [{ find: /^@\//, replacement: path.resolve(import.meta.dirname, 'src') + '/' }],
 };
 
 // # main options
