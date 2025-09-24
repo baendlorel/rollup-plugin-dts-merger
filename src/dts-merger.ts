@@ -13,13 +13,13 @@ import { createFilter } from '@rollup/pluginutils';
 import { replace } from './replace.js';
 import { RollupDtsMergerOptions } from './global.js';
 
-export function recursion(
-  filter: (id: unknown) => boolean,
+export function getDtsFiles(
+  exclude: (s: string) => boolean,
   nextPath: string,
   list: string[],
   nonexist: string[]
 ) {
-  if (!filter(nextPath)) {
+  if (!exclude(nextPath)) {
     return;
   }
 
@@ -41,14 +41,14 @@ export function recursion(
   const items = readdirSync(nextPath);
   for (let i = 0; i < items.length; i++) {
     const fullPath = join(nextPath, items[i]);
-    recursion(filter, fullPath, list, nonexist);
+    getDtsFiles(exclude, fullPath, list, nonexist);
   }
 }
 
 function normalize(options?: RollupDtsMergerOptions): __STRICT_OPTS__ {
   const {
     include = ['src'],
-    exclude = [],
+    exclude = ['node_modules/**/*', 'dist/**/*'],
     mergeInto = 'dist/index.d.ts',
     replace: rawReplace = {},
   } = Object(options) as RollupDtsMergerOptions;
@@ -69,15 +69,16 @@ function normalize(options?: RollupDtsMergerOptions): __STRICT_OPTS__ {
     }
   });
 
-  const filter = createFilter(include, exclude);
   const list: string[] = [];
   const nonexist: string[] = [];
-  recursion(filter, process.cwd(), list, nonexist);
+  // & find all .d.ts files first, then filter
+  getDtsFiles(createFilter(undefined, exclude), process.cwd(), list, nonexist);
+
   if (nonexist.length > 0) {
     console.warn(`__NAME__: The following files do not exist:\n${nonexist.join('\n')}`);
   }
 
-  return { list, mergeInto, replaceList };
+  return { list: list.filter(createFilter(include, undefined)), mergeInto, replaceList };
 }
 
 /**

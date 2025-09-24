@@ -3,14 +3,14 @@ import { run } from './runner.js';
 
 describe('Functionality', () => {
   it('should merge .d.ts files', async () => {
-    const { content, options } = run('common', '*.d.ts', {
+    const { content, options } = run('*.d.ts', 'common', {
       replace: {
-        __FLAG__: 'fulaige',
+        __FLAG__: 'ffff',
       },
     });
 
     expect(content.includes('__FLAG__')).toBe(false);
     expect(content.includes('__FLAG2__')).toBe(true);
-    expect(content.split('fulaige').length - 1).toBe(4);
+    expect(content.split('ffff').length - 1).toBe(4);
   });
 });
