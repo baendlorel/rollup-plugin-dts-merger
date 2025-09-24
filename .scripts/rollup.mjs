@@ -3,23 +3,36 @@ import { readFileSync, statSync, writeFileSync } from 'node:fs';
 import { join } from 'node:path';
 import { execute } from './execute.mjs';
 
-const toArr = (o) => (Array.isArray(o) ? o : typeof o === 'object' && o !== null ? [] : [o]);
+const toArr = (/** @type {any} */ o) =>
+  Array.isArray(o) ? o : typeof o === 'object' && o !== null ? [] : [o];
 
+/**
+ * @param {import("rollup").RollupOptions[]} rollupConfig
+ */
 function getOutputFiles(rollupConfig) {
+  /**
+   * @type {any[]}
+   */
   const output = [];
   toArr(rollupConfig).forEach((c) => output.push(...toArr(c.output)));
   return output.map((o) => o.file);
 }
 
+/**
+ * @param {any[]} files
+ */
 function printSize(files) {
   const mapper =
-    (maxLen) =>
-    ({ file, size }) =>
+    (/** @type {number} */ maxLen) =>
+    (/** @type {{file: string,size: number}} */ { file, size }) =>
       `${file.padEnd(maxLen, ' ')} - ${(size / 1024).toFixed(3)} KB`;
   let maxLen = 0;
   let total = 0;
+  /**
+   * @type {{ file: any; size: any; }[]}
+   */
   const info = [];
-  files.forEach((file) => {
+  files.forEach((/** @type {string} */ file) => {
     try {
       const size = statSync(file).size;
       maxLen = Math.max(maxLen, file.length);
@@ -43,6 +56,9 @@ class Renamer {
   origin = '';
   packageJson;
 
+  /**
+   * @param {import("fs").PathOrFileDescriptor} packageJsonPath
+   */
   constructor(packageJsonPath) {
     this.packageJsonPath = packageJsonPath;
     this.origin = readFileSync(packageJsonPath, 'utf-8');
@@ -57,6 +73,9 @@ class Renamer {
     return readFileSync(this.packageJsonPath, 'utf-8');
   }
 
+  /**
+   * @param {string | NodeJS.ArrayBufferView<ArrayBufferLike>} content
+   */
   write(content) {
     return writeFileSync(this.packageJsonPath, content, 'utf-8');
   }

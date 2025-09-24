@@ -1,5 +1,4 @@
 // @ts-check
-import pkg from './package.json' with { type: 'json' };
 import path from 'node:path';
 
 // plugins
@@ -13,7 +12,7 @@ import replace from '@rollup/plugin-replace';
 import dts from 'rollup-plugin-dts';
 
 // custom plugins
-import { replaceOpts } from './plugins/replace.mjs';
+import { replaceOpts } from './.scripts/plugins/replace.mjs';
 
 // # common options
 
