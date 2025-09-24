@@ -21,12 +21,14 @@ export function run(include: string, output: string, options: RollupDtsMergerOpt
   if (typeof plugin.writeBundle !== 'function') {
     throw new Error('Impossible for this.plugin.writeBundle not being a function');
   }
-  if (!existsSync(options.mergeInto)) {
-    writeFileSync(options.mergeInto, '', 'utf-8');
-  }
+
+  // clear the target file
+  writeFileSync(options.mergeInto, '', 'utf-8');
+
+  // run
   Reflect.apply(plugin.writeBundle, null, []);
+
   const opts = Reflect.get(plugin, '__KSKB_TMG_OPTS__') as __STRICT_OPTS__;
   const content = readFileSync(opts.mergeInto, 'utf-8');
-
   return { content, options: opts };
 }

@@ -10,10 +10,10 @@ import {
 import type { Plugin } from 'rollup';
 import { createFilter } from '@rollup/pluginutils';
 
-import { replace } from './replace.js';
+import { replace, stringify } from './replace.js';
 import { RollupDtsMergerOptions } from './global.js';
 
-export function getDtsFiles(
+function getDtsFiles(
   exclude: (s: string) => boolean,
   nextPath: string,
   list: string[],
@@ -45,7 +45,7 @@ export function getDtsFiles(
   }
 }
 
-function normalize(options?: RollupDtsMergerOptions): __STRICT_OPTS__ {
+export function normalize(options?: RollupDtsMergerOptions): __STRICT_OPTS__ {
   const {
     include = ['src'],
     exclude = ['node_modules/**/*', 'dist/**/*'],
@@ -67,6 +67,7 @@ function normalize(options?: RollupDtsMergerOptions): __STRICT_OPTS__ {
     } else {
       replaceList.push(key, String(value));
     }
+    replaceList.push(key, stringify(key, value));
   });
 
   const list: string[] = [];
