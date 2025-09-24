@@ -32,16 +32,7 @@ export function normalize(options?: RollupDtsMergerOptions): __STRICT_OPTS__ {
     replaceList.push(key, stringify(key, value));
   });
 
-  const list: string[] = [];
-  const nonexist: string[] = [];
-  // & find all .d.ts files first, then filter
-  getFiles(include, exclude);
-
-  if (nonexist.length > 0) {
-    console.warn(`__NAME__: The following files do not exist:\n${nonexist.join('\n')}`);
-  }
-
-  return { list: list.filter(createFilter(include, undefined)), mergeInto, replaceList };
+  return { list: getFiles(include, exclude), mergeInto, replaceList };
 }
 
 /**
