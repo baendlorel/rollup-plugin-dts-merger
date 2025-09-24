@@ -9,8 +9,8 @@ import { getFiles } from './get-files.js';
 
 export function normalize(options?: RollupDtsMergerOptions): __STRICT_OPTS__ {
   const {
-    include = ['src'],
-    exclude = ['src/**/*.d.ts', 'types/**/*.d.ts'],
+    include = ['src/**'],
+    exclude = ['test/**', 'tests/**', 'dist/**', 'node_modules/**'],
     mergeInto = 'dist/index.d.ts',
     replace: rawReplace = {},
   } = Object(options) as RollupDtsMergerOptions;

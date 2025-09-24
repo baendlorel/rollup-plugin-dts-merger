@@ -1,7 +1,6 @@
 import { join } from 'node:path';
-import { existsSync, readFileSync, writeFileSync } from 'node:fs';
+import { readFileSync, writeFileSync } from 'node:fs';
 
-import { Plugin } from 'rollup';
 import { dtsMerger } from '@/dts-merger.js';
 import { RollupDtsMergerOptions } from '@/global.js';
 

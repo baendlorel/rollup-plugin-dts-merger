@@ -36,9 +36,9 @@ export default {
   plugins: [
     dts(), // Generate .d.ts first
     dtsMerger({
-      include: ['src'], // default is 'src'
-      exclude: ['**/*.test.d.ts'],
-      mergeInto: 'dist/types.d.ts',
+      include: ['src/**'],
+      exclude: ['test/**', 'tests/**', 'dist/**', 'node_modules/**'],
+      mergeInto: 'dist/index.d.ts',
       replace: {
         '/*__DEV__*/': 'export',
         __VERSION__: '2.0.0',
@@ -54,14 +54,14 @@ export default {
 
 ### `include`
 
-- **Type**: `string | string[]`
-- **Default**: `['src']`
+- **Type**: Glob filter pattern
+- **Default**: `['src/**']`
 - **Description**: Glob patterns to include files/directories. All `.d.ts` files in these locations will be merged.
 
 ### `exclude`
 
-- **Type**: `string | string[]`
-- **Default**: `['node_modules/**/*', 'dist/**/*']`
+- **Type**: Glob filter pattern
+- **Default**: `['test/**', 'tests/**', 'dist/**', 'node_modules/**']`
 - **Description**: Glob patterns to exclude files/directories from merging.
 
 ### `mergeInto`
@@ -75,10 +75,9 @@ export default {
 - **Type**: `Record<string, any>`
 - **Default**: `{}`
 - **Description**: Key-value pairs for content replacement. Values can be:
-  - **String**: Direct replacement
-  - **Number/Boolean**: Converted to string
-  - **Function**: `(key: string) => string` - Dynamic replacement based on the key
-  - **null/undefined**: Converted to literal strings
+  - **string**: Direct replacement
+  - **function**: `(key: string) => string` - Dynamic replacement based on the key
+  - **other types**: Converted to string
 
 #### Replace Examples
 
