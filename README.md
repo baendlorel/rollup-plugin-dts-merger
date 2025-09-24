@@ -1,5 +1,8 @@
 <h1 align="center">rollup-plugin-dts-merger</h1>
 
+[![npm version](https://img.shields.io/npm/v/rollup-plugin-dts-merger.svg)](https://www.npmjs.com/package/rollup-plugin-dts-merger)
+[![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](https://opensource.org/licenses/MIT)
+
 <p align="center">
   <em>🦄 A Rollup plugin for merging and replacing TypeScript declaration files (.d.ts) with flexible options! 🦄</em>
 </p>
@@ -8,149 +11,110 @@ For more awesome packages, check out [my homepage💛](https://baendlorel.github
 
 ---
 
-## Table of Contents
-
-- [Features](#features)
-- [Installation](#installation)
-- [Usage](#usage)
-- [API Reference](#api-reference)
-- [Examples](#examples)
-- [Author](#author)
-
-## Changes in 1.3
-
-- Added `replace` option for simple string replacements using `String.prototype.replaceAll`.
-- Fixed an issue where an empty `replace` option would replace all characters with `undefined`. Now, if `replace` is empty, no replacements are made.
+> **Note: options in 2.0.0 is not completely compatible with 1.x.x !!** [see the details](#user-content-options)
 
 ## Features
 
-- Merge multiple `.d.ts` files into a single file
-- Flexible include/exclude options for files and directories
-- Integrated replacement system for declaration content (inspired by `@rollup/plugin-replace`)
-
-## Installation
-
-```bash
-pnpm add -D rollup-plugin-dts-merger
-# or
-npm install --save-dev rollup-plugin-dts-merger
-```
+- 🚀 **Auto merge**: Automatically finds and merges all `.d.ts` files from specified directories
+- 🔄 **Content replacement**: Built-in string/regex replacement functionality with support for functions
+- 🎯 **Flexible filtering**: Include/exclude patterns using glob syntax
+- 📦 **Zero dependencies**: Lightweight and fast
+- 🔧 **Simple configuration**: Minimal setup required
 
 ## Usage
 
-Add the plugin to your `rollup.config.mjs`:
+### Basic Usage
 
 ```js
-import { dtsMerger } from 'rollup-plugin-dts-merger';
+// rollup.config.js
+import dts from 'rollup-plugin-dts';
+import dtsMerger from 'rollup-plugin-dts-merger';
 
 export default {
+  input: 'src/index.ts',
+  output: { file: 'dist/index.d.ts', format: 'es' },
   plugins: [
+    dts(), // Generate .d.ts first
     dtsMerger({
-      // paths can be string or string[]
-      // -> path.join(process.cwd(), 'item')
-      // -> path.join(process.cwd(), ...['src', 'exports'])
-      include: ['item', ['src', 'exports']],
-      exclude: ['src/exclude-this.d.ts'], // also joined with cwd
-      mergeInto: ['dist', 'index.d.ts'], // also joined with cwd
+      include: ['src'], // default is 'src'
+      exclude: ['**/*.test.d.ts'],
+      mergeInto: 'dist/types.d.ts',
       replace: {
-        preventAssignment: true,
-        values: {
-          __TYPE__: 'MyType',
-        },
+        '/*__DEV__*/': 'export',
+        __VERSION__: '2.0.0',
       },
-    }),
+    }), // Then merge additional .d.ts files
   ],
 };
 ```
 
-## API Reference
+## Options
 
-### Plugin Options
+<a id="user-content-options"></a>
 
-| Option      | Type                     | Default                  | Description                                                 |
-| ----------- | ------------------------ | ------------------------ | ----------------------------------------------------------- |
-| `include`   | `(string \| string[])[]` | `["src"]`                | Relative paths to include. Directories and files supported. |
-| `exclude`   | `(string \| string[])[]` | `[]`                     | Relative paths to exclude.                                  |
-| `mergeInto` | `string \| string[]`     | `["dist", "index.d.ts"]` | Output file path.                                           |
-| `replace`   | `ReplaceOptions`         | See below                | Replacement options.                                        |
-| `replace`   | `Record<string, any>`    | `{}`                     | use `string.replaceAll` to replace things                   |
+### `include`
 
-#### ReplaceOptions
+- **Type**: `string | string[]`
+- **Default**: `['src']`
+- **Description**: Glob patterns to include files/directories. All `.d.ts` files in these locations will be merged.
 
-| Option              | Type                 | Default                 | Description                                                        |
-| ------------------- | -------------------- | ----------------------- | ------------------------------------------------------------------ |
-| `delimiters`        | `[string, string]`   | `["\\b", "\\b(?!\\.)"]` | Word boundary for replacement. Use `['', '']` for all occurrences. |
-| `preventAssignment` | `boolean`            | `false`                 | Prevents replacing assignments/declarations. Recommended: `true`.  |
-| `values`            | `Record<string,Any>` | `{}`                    | Key-value pairs for replacement. Value can be a function.          |
+### `exclude`
 
-#### Example ReplaceOptions
+- **Type**: `string | string[]`
+- **Default**: `['node_modules/**/*', 'dist/**/*']`
+- **Description**: Glob patterns to exclude files/directories from merging.
 
-```js
-const replaceOpts = {
-  delimiters: ['<@', '@>'],
-  preventAssignment: true,
-  values: {
-    __NAME__: 'MyName',
-    // can be a function, DtsMerger will pass 'key' to it
-    __TYPE__: (key) => key.toLowerCase(),
-  },
-};
-```
+### `mergeInto`
 
-## Examples
+- **Type**: `string`
+- **Default**: `'dist/index.d.ts'`
+- **Description**: Target file path where all `.d.ts` content will be merged into. This file must exist before merging (usually created by `rollup-plugin-dts`).
 
-### Basic Merge & Replace
+### `replace`
+
+- **Type**: `Record<string, any>`
+- **Default**: `{}`
+- **Description**: Key-value pairs for content replacement. Values can be:
+  - **String**: Direct replacement
+  - **Number/Boolean**: Converted to string
+  - **Function**: `(key: string) => string` - Dynamic replacement based on the key
+  - **null/undefined**: Converted to literal strings
+
+#### Replace Examples
 
 ```js
-import { dtsMerger } from 'rollup-plugin-dts-merger';
-
-dtsMerger({
-  include: ['src'],
-  mergeInto: ['dist', 'index.d.ts'],
+{
   replace: {
-    values: {
-      __TYPE__: 'MockType',
-    },
-  },
-});
+    // String replacement
+    '__VERSION__': '2.0.0',
+
+    // Remove development flags
+    '/*__DEV__*/': '',
+
+    // Add export keywords
+    '/*__EXPORT__*/': 'export',
+
+    // Function-based replacement
+    '__TIMESTAMP__': () => Date.now().toString(),
+
+    // Type/value replacements
+    'DEBUG_MODE': false,
+    'MAX_ITEMS': 100,
+    'API_ENDPOINT': null
+  }
+}
 ```
 
-### Prevent Assignment
+## How It Works
 
-```js
-dtsMerger({
-  include: [['tests', 'mock', 'src', 'assignment.d.ts']],
-  mergeInto: ['tests', 'mock', 'dist', 'prevented-assignment.d.ts'],
-  replace: {
-    preventAssignment: true,
-    values: {
-      __ASSIGN__: 'Assigned',
-    },
-  },
-});
-```
+1. **Find files**: Scans directories matching `include` patterns for `.d.ts` files
+2. **Filter**: Excludes files matching `exclude` patterns
+3. **Replace content**: Applies `replace` rules to both target file and source files
+4. **Merge**: Appends all source file content to the target file with source path comments
 
-#### assignment.d.ts Example
+## License
 
-```typescript
-// assignment.d.ts
-__ASSIGN__ = '__ASSIGN__';
-// or
-// declare const __ASSIGN__ = '__ASSIGN__';
-```
-
-### Custom Delimiters
-
-```js
-dtsMerger({
-  replace: {
-    delimiters: ['<@', '@>'],
-    values: {
-      __DILIMITER__: 'kasukabe',
-    },
-  },
-});
-```
+MIT
 
 ## Author
 

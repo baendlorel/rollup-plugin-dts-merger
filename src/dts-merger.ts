@@ -1,54 +1,16 @@
-import { join, relative } from 'node:path';
-import {
-  readdirSync,
-  readFileSync,
-  existsSync,
-  statSync,
-  appendFileSync,
-  writeFileSync,
-} from 'node:fs';
-import type { Plugin } from 'rollup';
+import { relative } from 'node:path';
+import { readFileSync, existsSync, statSync, appendFileSync, writeFileSync } from 'node:fs';
+import { Plugin } from 'rollup';
 import { createFilter } from '@rollup/pluginutils';
 
 import { replace, stringify } from './replace.js';
 import { RollupDtsMergerOptions } from './global.js';
-
-function getDtsFiles(
-  exclude: (s: string) => boolean,
-  nextPath: string,
-  list: string[],
-  nonexist: string[]
-) {
-  if (!exclude(nextPath)) {
-    return;
-  }
-
-  if (!existsSync(nextPath)) {
-    nonexist.push(nextPath);
-    return;
-  }
-
-  const s = statSync(nextPath);
-  if (s.isFile() && nextPath.endsWith('.d.ts')) {
-    list.push(nextPath);
-    return;
-  }
-
-  if (!s.isDirectory()) {
-    return;
-  }
-
-  const items = readdirSync(nextPath);
-  for (let i = 0; i < items.length; i++) {
-    const fullPath = join(nextPath, items[i]);
-    getDtsFiles(exclude, fullPath, list, nonexist);
-  }
-}
+import { getFiles } from './get-files.js';
 
 export function normalize(options?: RollupDtsMergerOptions): __STRICT_OPTS__ {
   const {
     include = ['src'],
-    exclude = ['node_modules/**/*', 'dist/**/*'],
+    exclude = ['src/**/*.d.ts', 'types/**/*.d.ts'],
     mergeInto = 'dist/index.d.ts',
     replace: rawReplace = {},
   } = Object(options) as RollupDtsMergerOptions;
@@ -73,7 +35,7 @@ export function normalize(options?: RollupDtsMergerOptions): __STRICT_OPTS__ {
   const list: string[] = [];
   const nonexist: string[] = [];
   // & find all .d.ts files first, then filter
-  getDtsFiles(createFilter(undefined, exclude), process.cwd(), list, nonexist);
+  getFiles(include, exclude);
 
   if (nonexist.length > 0) {
     console.warn(`__NAME__: The following files do not exist:\n${nonexist.join('\n')}`);
